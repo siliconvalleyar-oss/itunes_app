@@ -3,9 +3,8 @@ import 'package:itunes_app/main.dart';
 
 void main() {
   testWidgets('App renders correctly', (WidgetTester tester) async {
-    await tester.pumpWidget(const ITunesApp());
+    await tester.pumpWidget(const MusicStudioApp());
     await tester.pump();
-
-    expect(find.text('Mi Música'), findsOneWidget);
+    expect(find.text('Music Studio'), findsWidgets);
   });
 }

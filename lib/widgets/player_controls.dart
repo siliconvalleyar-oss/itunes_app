@@ -1,60 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
+import '../theme/app_theme.dart';
 import '../services/audio_service.dart';
-import 'glass_card.dart';
+import '../components/neu_button.dart';
 
 class PlayerControls extends StatelessWidget {
   final AudioService audioService;
-  final VoidCallback? onNext;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onShuffle;
-  final VoidCallback? onLoop;
 
-  const PlayerControls({
-    super.key,
-    required this.audioService,
-    this.onNext,
-    this.onPrevious,
-    this.onShuffle,
-    this.onLoop,
-  });
+  const PlayerControls({super.key, required this.audioService});
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: audioService,
-      builder: (context, child) {
+      builder: (context, _) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Shuffle
-            GlassButton(
-              onPressed: onShuffle ?? audioService.toggleShuffle,
+            NeuButton(
+              onPressed: audioService.toggleShuffle,
               size: 44,
+              isActive: audioService.isShuffled,
               child: Icon(
                 Icons.shuffle,
-                color: audioService.isShuffled
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.white70,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Previous
-            GlassButton(
-              onPressed: onPrevious ?? audioService.previous,
-              size: 50,
-              child: const Icon(
-                Icons.skip_previous,
-                color: Colors.white,
-                size: 28,
+                color: audioService.isShuffled ? AppColors.accent : AppColors.textDisabled,
+                size: 18,
               ),
             ),
             const SizedBox(width: 16),
-
-            // Play/Pause
-            GlassButton(
+            NeuButton(
+              onPressed: audioService.previous,
+              size: 52,
+              child: const Icon(Icons.skip_previous, color: AppColors.textPrimary, size: 26),
+            ),
+            const SizedBox(width: 16),
+            NeuButton(
               onPressed: () {
                 if (audioService.isPlaying) {
                   audioService.pause();
@@ -62,116 +41,34 @@ class PlayerControls extends StatelessWidget {
                   audioService.resume();
                 }
               },
-              size: 70,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+              size: 68,
+              isInset: audioService.isPlaying,
               child: Icon(
                 audioService.isPlaying ? Icons.pause : Icons.play_arrow,
-                color: Colors.white,
-                size: 36,
+                color: AppColors.accent,
+                size: 34,
               ),
             ),
             const SizedBox(width: 16),
-
-            // Next
-            GlassButton(
-              onPressed: onNext ?? audioService.next,
-              size: 50,
-              child: const Icon(
-                Icons.skip_next,
-                color: Colors.white,
-                size: 28,
-              ),
+            NeuButton(
+              onPressed: audioService.next,
+              size: 52,
+              child: const Icon(Icons.skip_next, color: AppColors.textPrimary, size: 26),
             ),
-            const SizedBox(width: 12),
-
-            // Loop
-            GlassButton(
-              onPressed: onLoop ?? audioService.cycleLoopMode,
+            const SizedBox(width: 16),
+            NeuButton(
+              onPressed: audioService.cycleLoopMode,
               size: 44,
+              isActive: audioService.loopMode != 0,
               child: Icon(
-                audioService.loopMode == LoopMode.one
-                    ? Icons.repeat_one
-                    : Icons.repeat,
-                color: audioService.loopMode != LoopMode.off
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.white70,
-                size: 20,
+                audioService.loopMode == 2 ? Icons.repeat_one : Icons.repeat,
+                color: audioService.loopMode != 0 ? AppColors.accent : AppColors.textDisabled,
+                size: 18,
               ),
             ),
           ],
         );
       },
     );
-  }
-}
-
-class ProgressBar extends StatelessWidget {
-  final AudioService audioService;
-
-  const ProgressBar({super.key, required this.audioService});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: audioService,
-      builder: (context, child) {
-        final position = audioService.position;
-        final duration = audioService.duration;
-
-        return Column(
-          children: [
-            SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 4,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                activeTrackColor: Theme.of(context).colorScheme.primary,
-                inactiveTrackColor: Colors.white24,
-                thumbColor: Colors.white,
-              ),
-              child: Slider(
-                value: duration.inMilliseconds > 0
-                    ? position.inMilliseconds / duration.inMilliseconds
-                    : 0.0,
-                onChanged: (value) {
-                  final newPosition = Duration(
-                    milliseconds: (value * duration.inMilliseconds).round(),
-                  );
-                  audioService.seek(newPosition);
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _formatDuration(position),
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
-                  ),
-                  Text(
-                    _formatDuration(duration),
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 }

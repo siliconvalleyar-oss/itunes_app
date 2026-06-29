@@ -1,20 +1,8 @@
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/song.dart';
 
 class FileService {
-  Future<List<String>> pickAudioFiles() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['mp3', 'flac', 'ogg', 'wav', 'aac', 'm4a'],
-      allowMultiple: true,
-    );
-
-    if (result == null) return [];
-    return result.files.map((file) => file.path!).toList();
-  }
-
   Future<List<Song>> loadSongsFromPaths(List<String> paths) async {
     final songs = <Song>[];
     for (final path in paths) {
@@ -57,10 +45,6 @@ class FileService {
     if (await file.exists()) {
       await file.delete();
     }
-  }
-
-  Future<bool> fileExists(String path) async {
-    return File(path).exists();
   }
 
   String _getFileName(String path) {

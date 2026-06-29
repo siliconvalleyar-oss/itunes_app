@@ -11,6 +11,7 @@ class Song {
   final String? genre;
   final Uint8List? coverArt;
   final Duration duration;
+  final int? fileSize;
 
   Song({
     required this.id,
@@ -23,6 +24,7 @@ class Song {
     this.genre,
     this.coverArt,
     this.duration = Duration.zero,
+    this.fileSize,
   });
 
   Song copyWith({
@@ -46,6 +48,7 @@ class Song {
       genre: genre ?? this.genre,
       coverArt: coverArt ?? this.coverArt,
       duration: duration ?? this.duration,
+      fileSize: fileSize,
     );
   }
 
@@ -60,12 +63,13 @@ class Song {
       'track': track,
       'genre': genre,
       'durationMs': duration.inMilliseconds,
+      'fileSize': fileSize,
     };
   }
 
   factory Song.fromMap(Map<String, dynamic> map) {
     return Song(
-      id: map['id'],
+      id: map['id'].toString(),
       filePath: map['filePath'],
       title: map['title'],
       artist: map['artist'] ?? 'Desconocido',
@@ -74,6 +78,7 @@ class Song {
       track: map['track'],
       genre: map['genre'],
       duration: Duration(milliseconds: map['durationMs'] ?? 0),
+      fileSize: map['fileSize'],
     );
   }
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../models/song.dart';
 import '../services/audio_service.dart';
 import '../services/metadata_service.dart';
-import '../widgets/glass_card.dart';
+import '../components/neu_card.dart';
+import '../components/neu_button.dart';
+import '../components/neu_input.dart';
 
 class EditorScreen extends StatefulWidget {
   final AudioService audioService;
@@ -14,311 +17,239 @@ class EditorScreen extends StatefulWidget {
 }
 
 class _EditorScreenState extends State<EditorScreen> {
-  final MetadataService _metadataService = MetadataService();
-  final _formKey = GlobalKey<FormState>();
-
-  late TextEditingController _titleController;
-  late TextEditingController _artistController;
-  late TextEditingController _albumController;
-  late TextEditingController _yearController;
-  late TextEditingController _trackController;
-  late TextEditingController _genreController;
-  late TextEditingController _commentController;
-
+  final MetadataService _metaService = MetadataService();
+  final _titleCtrl = TextEditingController();
+  final _artistCtrl = TextEditingController();
+  final _albumCtrl = TextEditingController();
+  final _yearCtrl = TextEditingController();
+  final _genreCtrl = TextEditingController();
+  final _trackCtrl = TextEditingController();
+  final _discCtrl = TextEditingController();
+  final _commentCtrl = TextEditingController();
+  final _lyricsCtrl = TextEditingController();
   Song? _song;
-  bool _isLoading = false;
   bool _hasChanges = false;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController();
-    _artistController = TextEditingController();
-    _albumController = TextEditingController();
-    _yearController = TextEditingController();
-    _trackController = TextEditingController();
-    _genreController = TextEditingController();
-    _commentController = TextEditingController();
+    _loadSong();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final song = ModalRoute.of(context)?.settings.arguments as Song?;
-    if (song != null && _song == null) {
-      _song = song;
-      _loadMetadata();
-    }
-  }
-
-  Future<void> _loadMetadata() async {
-    if (_song == null) return;
-    setState(() => _isLoading = true);
-
-    try {
-      final metadata =
-          await _metadataService.readMetadata(_song!.filePath);
-      _titleController.text = metadata.title ?? _song!.title;
-      _artistController.text = metadata.artist ?? _song!.artist;
-      _albumController.text = metadata.album ?? _song!.album;
-      _yearController.text = metadata.year?.toString() ?? '';
-      _trackController.text = metadata.track?.toString() ?? '';
-      _genreController.text = metadata.genre ?? '';
-      _commentController.text = metadata.comment ?? '';
-    } catch (e) {
-      debugPrint('Error loading metadata: $e');
-    } finally {
-      setState(() => _isLoading = false);
-    }
+  void _loadSong() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final song = ModalRoute.of(context)?.settings.arguments as Song?;
+      if (song != null) {
+        setState(() => _song = song);
+        _titleCtrl.text = song.title;
+        _artistCtrl.text = song.artist;
+        _albumCtrl.text = song.album;
+      }
+    });
   }
 
   void _markChanged() {
-    if (!_hasChanges) {
-      setState(() => _hasChanges = true);
-    }
+    if (!_hasChanges) setState(() => _hasChanges = true);
   }
 
-  Future<void> _saveMetadata() async {
+  Future<void> _save() async {
     if (_song == null) return;
-    setState(() => _isLoading = true);
-
     try {
-      final metadata = SongMetadata(
-        title: _titleController.text,
-        artist: _artistController.text,
-        album: _albumController.text,
-        year: int.tryParse(_yearController.text),
-        track: int.tryParse(_trackController.text),
-        genre: _genreController.text,
-        comment: _commentController.text,
+      await _metaService.saveMetadata(
+        _song!.filePath,
+        SongMetadata(
+          title: _titleCtrl.text,
+          artist: _artistCtrl.text,
+          album: _albumCtrl.text,
+          year: int.tryParse(_yearCtrl.text),
+          genre: _genreCtrl.text,
+          track: int.tryParse(_trackCtrl.text),
+        ),
       );
-
-      await _metadataService.saveMetadata(_song!.filePath, metadata);
-
       if (mounted) {
         setState(() => _hasChanges = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Metadatos guardados'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
+            content: const Text('Guardado'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
-    } finally {
-      setState(() => _isLoading = false);
-    }
+    } catch (_) {}
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _artistController.dispose();
-    _albumController.dispose();
-    _yearController.dispose();
-    _trackController.dispose();
-    _genreController.dispose();
-    _commentController.dispose();
+    _titleCtrl.dispose();
+    _artistCtrl.dispose();
+    _albumCtrl.dispose();
+    _yearCtrl.dispose();
+    _genreCtrl.dispose();
+    _trackCtrl.dispose();
+    _discCtrl.dispose();
+    _commentCtrl.dispose();
+    _lyricsCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF1a1a2e),
-            const Color(0xFF16213e),
-            Theme.of(context).colorScheme.primary.withOpacity(0.2),
-          ],
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text('Editar Metadatos'),
-          actions: [
-            if (_hasChanges)
-              IconButton(
-                onPressed: _isLoading ? null : _saveMetadata,
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save),
-              ),
-          ],
-        ),
-        body: _isLoading && _song == null
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      // Cover art
-                      GlassCard(
-                        padding: const EdgeInsets.all(24),
-                        child: Center(
-                          child: Container(
-                            width: 150,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.purple.withOpacity(0.5),
-                                  Colors.blue.withOpacity(0.5),
-                                ],
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.music_note,
-                              color: Colors.white38,
-                              size: 60,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Fields
-                      _buildField(
-                        controller: _titleController,
-                        label: 'Título',
-                        icon: Icons.title,
-                        onChanged: (_) => _markChanged(),
-                      ),
-                      _buildField(
-                        controller: _artistController,
-                        label: 'Artista',
-                        icon: Icons.person,
-                        onChanged: (_) => _markChanged(),
-                      ),
-                      _buildField(
-                        controller: _albumController,
-                        label: 'Álbum',
-                        icon: Icons.album,
-                        onChanged: (_) => _markChanged(),
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildField(
-                              controller: _yearController,
-                              label: 'Año',
-                              icon: Icons.calendar_today,
-                              keyboardType: TextInputType.number,
-                              onChanged: (_) => _markChanged(),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildField(
-                              controller: _trackController,
-                              label: 'Pista',
-                              icon: Icons.format_list_numbered,
-                              keyboardType: TextInputType.number,
-                              onChanged: (_) => _markChanged(),
-                            ),
-                          ),
-                        ],
-                      ),
-                      _buildField(
-                        controller: _genreController,
-                        label: 'Género',
-                        icon: Icons.category,
-                        onChanged: (_) => _markChanged(),
-                      ),
-                      _buildField(
-                        controller: _commentController,
-                        label: 'Comentario',
-                        icon: Icons.comment,
-                        maxLines: 3,
-                        onChanged: (_) => _markChanged(),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Save button
-                      if (_hasChanges)
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _saveMetadata,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white)
-                                : const Text(
-                                    'Guardar Cambios',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                    ],
-                  ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 24),
+                    _buildCoverArt(),
+                    const SizedBox(height: 24),
+                    _buildForm(),
+                    const SizedBox(height: 24),
+                    _buildActions(),
+                    const SizedBox(height: 40),
+                  ],
                 ),
               ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    Function(String)? onChanged,
-  }) {
+  Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GlassCard(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        borderRadius: 12,
-        child: TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          onChanged: onChanged,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: const TextStyle(color: Colors.white54),
-            prefixIcon: Icon(icon, color: Colors.white54, size: 20),
-            border: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      child: Row(
+        children: [
+          NeuButton(
+            onPressed: () => Navigator.pop(context),
+            size: 40,
+            child: const Icon(Icons.arrow_back_ios_new, color: AppColors.textSecondary, size: 16),
           ),
+          const SizedBox(width: 16),
+          const Text(
+            'Editor',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const Spacer(),
+          if (_hasChanges)
+            NeuButton(
+              onPressed: _save,
+              size: 40,
+              isActive: true,
+              child: const Icon(Icons.check, color: AppColors.accent, size: 20),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoverArt() {
+    return Center(
+      child: NeuCard(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: Neumorphic.inset,
+              ),
+              child: const Icon(Icons.music_note, color: AppColors.textDisabled, size: 64),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                NeuButton(
+                  onPressed: () {},
+                  size: 36,
+                  child: const Icon(Icons.photo_camera, color: AppColors.textSecondary, size: 16),
+                ),
+                const SizedBox(width: 12),
+                NeuButton(
+                  onPressed: () {},
+                  size: 36,
+                  child: const Icon(Icons.delete_outline, color: AppColors.error, size: 16),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildForm() {
+    return Column(
+      children: [
+        NeuInput(controller: _titleCtrl, label: 'Título', icon: Icons.title, onChanged: (_) => _markChanged()),
+        NeuInput(controller: _artistCtrl, label: 'Artista', icon: Icons.person_outline, onChanged: (_) => _markChanged()),
+        NeuInput(controller: _albumCtrl, label: 'Álbum', icon: Icons.album_outlined, onChanged: (_) => _markChanged()),
+        Row(
+          children: [
+            Expanded(child: NeuInput(controller: _yearCtrl, label: 'Año', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
+            const SizedBox(width: 12),
+            Expanded(child: NeuInput(controller: _genreCtrl, label: 'Género', icon: Icons.category_outlined, onChanged: (_) => _markChanged())),
+          ],
+        ),
+        Row(
+          children: [
+            Expanded(child: NeuInput(controller: _trackCtrl, label: 'Pista', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
+            const SizedBox(width: 12),
+            Expanded(child: NeuInput(controller: _discCtrl, label: 'Disco', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
+          ],
+        ),
+        NeuInput(controller: _commentCtrl, label: 'Comentario', icon: Icons.comment_outlined, onChanged: (_) => _markChanged()),
+        NeuInput(controller: _lyricsCtrl, label: 'Letra', maxLines: 4, onChanged: (_) => _markChanged()),
+      ],
+    );
+  }
+
+  Widget _buildActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: NeuButton(
+            onPressed: () => Navigator.pop(context),
+            size: 52,
+            isCircle: false,
+            child: const Text('Cancelar', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: NeuButton(
+            onPressed: _hasChanges ? _save : null,
+            size: 52,
+            isCircle: false,
+            isActive: _hasChanges,
+            child: Text(
+              'Guardar',
+              style: TextStyle(
+                color: _hasChanges ? AppColors.accent : AppColors.textDisabled,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
