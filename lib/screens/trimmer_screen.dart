@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/song.dart';
 import '../services/audio_service.dart';
 import '../widgets/glass_card.dart';
-import '../widgets/player_controls.dart';
 
 class TrimmerScreen extends StatefulWidget {
   final AudioService audioService;

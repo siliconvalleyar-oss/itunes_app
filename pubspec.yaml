@@ -11,9 +11,9 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   just_audio: ^0.9.36
-  audio_metadata_extract: ^2.0.0
+  on_audio_query: ^2.9.0
   file_picker: ^6.0.0
-  permission_handler: ^10.0.0
+  permission_handler: ^11.0.0
   path_provider: ^2.0.0
   audio_waveforms: ^1.0.0
 
