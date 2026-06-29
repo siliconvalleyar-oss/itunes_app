@@ -1,10 +1,32 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/playlist_service.dart';
+import '../services/audio_service.dart';
 import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 
-class PlaylistsScreen extends StatelessWidget {
-  const PlaylistsScreen({super.key});
+class PlaylistsScreen extends StatefulWidget {
+  final PlaylistService playlistService;
+  final AudioService audioService;
+
+  PlaylistsScreen({
+    super.key,
+    required this.playlistService,
+    required this.audioService,
+  });
+
+  @override
+  State<PlaylistsScreen> createState() => _PlaylistsScreenState();
+}
+
+class _PlaylistsScreenState extends State<PlaylistsScreen> {
+  final _nameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,10 +35,92 @@ class PlaylistsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context),
-            const SizedBox(height: 24),
+            _buildHeader(),
+            SizedBox(height: 16),
             Expanded(
-              child: _buildPlaylists(),
+              child: ListenableBuilder(
+                listenable: widget.playlistService,
+                builder: (context, _) {
+                  final playlists = widget.playlistService.playlists;
+                  if (playlists.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              shape: BoxShape.circle,
+                              boxShadow: Neumorphic.inset,
+                            ),
+                            child: Icon(Icons.queue_music, color: AppColors.textDisabled, size: 32),
+                          ),
+                          SizedBox(height: 16),
+                          Text('No hay playlists',
+                              style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                          SizedBox(height: 8),
+                          Text('Toca + para crear una',
+                              style: TextStyle(color: AppColors.textDisabled, fontSize: 13)),
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    itemCount: playlists.length,
+                    itemBuilder: (context, index) {
+                      final pl = playlists[index];
+                      return NeuCard(
+                        margin: EdgeInsets.only(bottom: 16),
+                        padding: EdgeInsets.all(16),
+                        borderRadius: 20,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: Neumorphic.inset,
+                              ),
+                              child: Icon(Icons.music_note, color: AppColors.accent, size: 24),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    pl.name,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '${pl.songs.length} canciones',
+                                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            NeuButton(
+                              onPressed: () => _showDeleteDialog(pl.id),
+                              size: 32,
+                              child: Icon(Icons.delete_outline, color: AppColors.error, size: 16),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -24,12 +128,12 @@ class PlaylistsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
-          const Text(
+          Text(
             'Playlists',
             style: TextStyle(
               fontSize: 28,
@@ -37,100 +141,34 @@ class PlaylistsScreen extends StatelessWidget {
               color: AppColors.textPrimary,
             ),
           ),
-          const Spacer(),
+          Spacer(),
           NeuButton(
-            onPressed: () => _showCreateDialog(context),
+            onPressed: _showCreateDialog,
             size: 40,
-            child: const Icon(Icons.add, color: AppColors.accent, size: 20),
+            child: Icon(Icons.add, color: AppColors.accent, size: 20),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPlaylists() {
-    final playlists = [
-      {'name': 'Mi Playlist', 'count': 12, 'icon': Icons.favorite},
-      {'name': ' workout', 'count': 8, 'icon': Icons.fitness_center},
-      {'name': 'Relax', 'count': 15, 'icon': Icons.spa},
-      {'name': 'Work', 'count': 20, 'icon': Icons.work},
-    ];
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      itemCount: playlists.length,
-      itemBuilder: (context, index) {
-        final pl = playlists[index];
-        return NeuCard(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
-          borderRadius: 20,
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: Neumorphic.inset,
-                ),
-                child: Icon(pl['icon'] as IconData, color: AppColors.accent, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      pl['name'] as String,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${pl['count']} canciones',
-                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              NeuButton(
-                onPressed: () {},
-                size: 36,
-                child: const Icon(Icons.play_arrow, color: AppColors.accent, size: 18),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCreateDialog(BuildContext context) {
-    final controller = TextEditingController();
+  void _showCreateDialog() {
+    _nameController.clear();
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (ctx) => Dialog(
         backgroundColor: AppColors.background,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Nueva Playlist',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
@@ -138,22 +176,23 @@ class PlaylistsScreen extends StatelessWidget {
                   boxShadow: Neumorphic.inset,
                 ),
                 child: TextField(
-                  controller: controller,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
-                    hintText: 'Nombre',
+                  controller: _nameController,
+                  autofocus: true,
+                  style: TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Nombre de la playlist',
                     hintStyle: TextStyle(color: AppColors.textDisabled),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => Navigator.pop(ctx),
                       child: Container(
                         height: 48,
                         decoration: BoxDecoration(
@@ -161,16 +200,22 @@ class PlaylistsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: Neumorphic.subtle,
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        final name = _nameController.text.trim();
+                        if (name.isNotEmpty) {
+                          widget.playlistService.addPlaylist(name);
+                          Navigator.pop(ctx);
+                        }
+                      },
                       child: Container(
                         height: 48,
                         decoration: BoxDecoration(
@@ -178,8 +223,72 @@ class PlaylistsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: Neumorphic.subtle,
                         ),
-                        child: const Center(
-                          child: Text('Crear', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                        child: Center(
+                          child: Text('Crear',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteDialog(String id) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Eliminar playlist',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              SizedBox(height: 16),
+              Text('¿Estás seguro?',
+                  style: TextStyle(color: AppColors.textSecondary)),
+              SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: Neumorphic.subtle,
+                        ),
+                        child: Center(
+                          child: Text('No', style: TextStyle(color: AppColors.textSecondary)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        widget.playlistService.removePlaylist(id);
+                        Navigator.pop(ctx);
+                      },
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Center(
+                          child: Text('Eliminar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                         ),
                       ),
                     ),

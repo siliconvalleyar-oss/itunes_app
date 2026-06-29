@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
   final AudioService audioService;
   final LibraryService libraryService;
 
-  const HomeScreen({
+  HomeScreen({
     super.key,
     required this.audioService,
     required this.libraryService,
@@ -55,20 +55,20 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     _buildNowPlaying(),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                     _buildControls(),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     _buildProgressBar(),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     _buildInfoChips(),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     _buildVisualizer(),
-                    const SizedBox(height: 100),
+                    SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -90,16 +90,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           NeuButton(
             onPressed: () {},
             size: 44,
-            child: const Icon(Icons.menu, color: AppColors.textSecondary, size: 20),
+            child: Icon(Icons.menu, color: AppColors.textSecondary, size: 20),
           ),
-          const Text(
+          Text(
             'Music Studio',
             style: TextStyle(
               fontSize: 20,
@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
           NeuButton(
             onPressed: () {},
             size: 44,
-            child: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
+            child: Icon(Icons.search, color: AppColors.textSecondary, size: 20),
           ),
         ],
       ),
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, _) {
         final song = widget.audioService.currentSong;
         return NeuCard(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             children: [
               Container(
@@ -146,16 +146,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(24),
                         child: Image.memory(song!.coverArt!, fit: BoxFit.cover),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.music_note,
                         color: AppColors.textDisabled,
                         size: 72,
                       ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Text(
                 song?.title ?? 'Selecciona una canción',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
@@ -164,18 +164,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(
                 song?.artist ?? 'Artista',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   color: AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
                 song?.album ?? 'Álbum',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: AppColors.textDisabled,
                 ),
@@ -206,13 +206,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 size: 20,
               ),
             ),
-            const SizedBox(width: 20),
+            SizedBox(width: 20),
             NeuButton(
               onPressed: widget.audioService.previous,
               size: 56,
-              child: const Icon(Icons.skip_previous, color: AppColors.textPrimary, size: 28),
+              child: Icon(Icons.skip_previous, color: AppColors.textPrimary, size: 28),
             ),
-            const SizedBox(width: 20),
+            SizedBox(width: 20),
             NeuButton(
               onPressed: () {
                 if (widget.audioService.isPlaying) {
@@ -229,13 +229,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 size: 36,
               ),
             ),
-            const SizedBox(width: 20),
+            SizedBox(width: 20),
             NeuButton(
               onPressed: widget.audioService.next,
               size: 56,
-              child: const Icon(Icons.skip_next, color: AppColors.textPrimary, size: 28),
+              child: Icon(Icons.skip_next, color: AppColors.textPrimary, size: 28),
             ),
-            const SizedBox(width: 20),
+            SizedBox(width: 20),
             NeuButton(
               onPressed: widget.audioService.cycleLoopMode,
               size: 48,
@@ -272,17 +272,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 widget.audioService.seek(pos);
               },
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   _fmt(widget.audioService.position),
-                  style: const TextStyle(fontSize: 12, color: AppColors.textDisabled),
+                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
                 ),
                 Text(
                   _fmt(widget.audioService.duration),
-                  style: const TextStyle(fontSize: 12, color: AppColors.textDisabled),
+                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
                 ),
               ],
             ),
@@ -300,9 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildChip('320', 'kbps'),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             _buildChip('MP3', 'fmt'),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             _buildChip('44.1', 'kHz'),
           ],
         );
@@ -312,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildChip(String value, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -320,8 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         children: [
-          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textDisabled)),
+          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          Text(label, style: TextStyle(fontSize: 10, color: AppColors.textDisabled)),
         ],
       ),
     );
@@ -329,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildVisualizer() {
     return NeuCard(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: SizedBox(
         height: 60,
         child: Row(

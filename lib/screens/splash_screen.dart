@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 class SplashScreen extends StatefulWidget {
   final VoidCallback onComplete;
 
-  const SplashScreen({super.key, required this.onComplete});
+  SplashScreen({super.key, required this.onComplete});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: Duration(milliseconds: 1500),
       vsync: this,
     );
 
@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(Duration(milliseconds: 2000), () {
       widget.onComplete();
     });
   }
@@ -68,14 +68,14 @@ class _SplashScreenState extends State<SplashScreen>
                         shape: BoxShape.circle,
                         boxShadow: Neumorphic.raised,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.music_note,
                         color: AppColors.accent,
                         size: 44,
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    const Text(
+                    SizedBox(height: 32),
+                    Text(
                       'Music Studio',
                       style: TextStyle(
                         fontSize: 28,
@@ -84,8 +84,8 @@ class _SplashScreenState extends State<SplashScreen>
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: 8),
+                    Text(
                       'Tu música, tu estilo',
                       style: TextStyle(
                         fontSize: 14,

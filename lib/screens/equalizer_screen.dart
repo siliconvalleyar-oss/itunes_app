@@ -4,7 +4,7 @@ import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 
 class EqualizerScreen extends StatefulWidget {
-  const EqualizerScreen({super.key});
+  EqualizerScreen({super.key});
 
   @override
   State<EqualizerScreen> createState() => _EqualizerScreenState();
@@ -69,13 +69,13 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
         child: Column(
           children: [
             _buildHeader(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             _buildPresets(),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             Expanded(child: _buildBands()),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             _buildActions(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
           ],
         ),
       ),
@@ -84,16 +84,16 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
           NeuButton(
             onPressed: () => Navigator.pop(context),
             size: 40,
-            child: const Icon(Icons.arrow_back_ios_new, color: AppColors.textSecondary, size: 16),
+            child: Icon(Icons.arrow_back_ios_new, color: AppColors.textSecondary, size: 16),
           ),
-          const SizedBox(width: 16),
-          const Text(
+          SizedBox(width: 16),
+          Text(
             'Ecualizador',
             style: TextStyle(
               fontSize: 28,
@@ -111,18 +111,18 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(horizontal: 24),
         itemCount: _presets.length,
         itemBuilder: (context, index) {
           final preset = _presets[index];
           final isActive = _selectedPreset == preset;
           return Padding(
-            padding: const EdgeInsets.only(right: 10),
+            padding: EdgeInsets.only(right: 10),
             child: GestureDetector(
               onTap: () => _applyPreset(preset),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
+                duration: Duration(milliseconds: 250),
+                padding: EdgeInsets.symmetric(horizontal: 18),
                 decoration: BoxDecoration(
                   color: isActive ? AppColors.accent.withOpacity(0.15) : AppColors.surface,
                   borderRadius: BorderRadius.circular(14),
@@ -148,8 +148,8 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
 
   Widget _buildBands() {
     return NeuCard(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      margin: EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(_bands.length, (i) {
@@ -177,15 +177,15 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
                     : AppColors.textDisabled,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Expanded(
           child: RotatedBox(
             quarterTurns: -1,
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 trackHeight: 4,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
+                overlayShape: RoundSliderOverlayShape(overlayRadius: 14),
                 activeTrackColor: AppColors.accent,
                 inactiveTrackColor: AppColors.surface,
                 thumbColor: AppColors.background,
@@ -200,10 +200,10 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           band['freq'],
-          style: const TextStyle(fontSize: 10, color: AppColors.textDisabled),
+          style: TextStyle(fontSize: 10, color: AppColors.textDisabled),
         ),
       ],
     );
@@ -211,7 +211,7 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
 
   Widget _buildActions() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
           Expanded(
@@ -219,17 +219,17 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
               onPressed: () => _applyPreset('Normal'),
               size: 48,
               isCircle: false,
-              child: const Text('Reset', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              child: Text('Reset', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: NeuButton(
               onPressed: () {},
               size: 48,
               isCircle: false,
               isActive: true,
-              child: const Text('Aplicar', style: TextStyle(color: AppColors.accent, fontSize: 13, fontWeight: FontWeight.w600)),
+              child: Text('Aplicar', style: TextStyle(color: AppColors.accent, fontSize: 13, fontWeight: FontWeight.w600)),
             ),
           ),
         ],

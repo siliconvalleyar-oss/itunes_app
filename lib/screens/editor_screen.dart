@@ -10,7 +10,7 @@ import '../components/neu_input.dart';
 class EditorScreen extends StatefulWidget {
   final AudioService audioService;
 
-  const EditorScreen({super.key, required this.audioService});
+  EditorScreen({super.key, required this.audioService});
 
   @override
   State<EditorScreen> createState() => _EditorScreenState();
@@ -70,7 +70,7 @@ class _EditorScreenState extends State<EditorScreen> {
         setState(() => _hasChanges = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Guardado'),
+            content: Text('Guardado'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -104,16 +104,16 @@ class _EditorScreenState extends State<EditorScreen> {
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     _buildCoverArt(),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     _buildForm(),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     _buildActions(),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -126,16 +126,16 @@ class _EditorScreenState extends State<EditorScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
           NeuButton(
             onPressed: () => Navigator.pop(context),
             size: 40,
-            child: const Icon(Icons.arrow_back_ios_new, color: AppColors.textSecondary, size: 16),
+            child: Icon(Icons.arrow_back_ios_new, color: AppColors.textSecondary, size: 16),
           ),
-          const SizedBox(width: 16),
-          const Text(
+          SizedBox(width: 16),
+          Text(
             'Editor',
             style: TextStyle(
               fontSize: 28,
@@ -143,13 +143,13 @@ class _EditorScreenState extends State<EditorScreen> {
               color: AppColors.textPrimary,
             ),
           ),
-          const Spacer(),
+          Spacer(),
           if (_hasChanges)
             NeuButton(
               onPressed: _save,
               size: 40,
               isActive: true,
-              child: const Icon(Icons.check, color: AppColors.accent, size: 20),
+              child: Icon(Icons.check, color: AppColors.accent, size: 20),
             ),
         ],
       ),
@@ -159,7 +159,7 @@ class _EditorScreenState extends State<EditorScreen> {
   Widget _buildCoverArt() {
     return Center(
       child: NeuCard(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           children: [
             Container(
@@ -170,22 +170,22 @@ class _EditorScreenState extends State<EditorScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: Neumorphic.inset,
               ),
-              child: const Icon(Icons.music_note, color: AppColors.textDisabled, size: 64),
+              child: Icon(Icons.music_note, color: AppColors.textDisabled, size: 64),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 NeuButton(
                   onPressed: () {},
                   size: 36,
-                  child: const Icon(Icons.photo_camera, color: AppColors.textSecondary, size: 16),
+                  child: Icon(Icons.photo_camera, color: AppColors.textSecondary, size: 16),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 NeuButton(
                   onPressed: () {},
                   size: 36,
-                  child: const Icon(Icons.delete_outline, color: AppColors.error, size: 16),
+                  child: Icon(Icons.delete_outline, color: AppColors.error, size: 16),
                 ),
               ],
             ),
@@ -204,14 +204,14 @@ class _EditorScreenState extends State<EditorScreen> {
         Row(
           children: [
             Expanded(child: NeuInput(controller: _yearCtrl, label: 'Año', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(child: NeuInput(controller: _genreCtrl, label: 'Género', icon: Icons.category_outlined, onChanged: (_) => _markChanged())),
           ],
         ),
         Row(
           children: [
             Expanded(child: NeuInput(controller: _trackCtrl, label: 'Pista', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(child: NeuInput(controller: _discCtrl, label: 'Disco', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
           ],
         ),
@@ -229,10 +229,10 @@ class _EditorScreenState extends State<EditorScreen> {
             onPressed: () => Navigator.pop(context),
             size: 52,
             isCircle: false,
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+            child: Text('Cancelar', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: 16),
         Expanded(
           child: NeuButton(
             onPressed: _hasChanges ? _save : null,

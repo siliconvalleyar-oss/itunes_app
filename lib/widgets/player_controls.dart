@@ -30,7 +30,7 @@ class PlayerControls extends StatelessWidget {
             NeuButton(
               onPressed: audioService.previous,
               size: 52,
-              child: const Icon(Icons.skip_previous, color: AppColors.textPrimary, size: 26),
+              child: Icon(Icons.skip_previous, color: AppColors.textPrimary, size: 26),
             ),
             const SizedBox(width: 16),
             NeuButton(
@@ -53,7 +53,7 @@ class PlayerControls extends StatelessWidget {
             NeuButton(
               onPressed: audioService.next,
               size: 52,
-              child: const Icon(Icons.skip_next, color: AppColors.textPrimary, size: 26),
+              child: Icon(Icons.skip_next, color: AppColors.textPrimary, size: 26),
             ),
             const SizedBox(width: 16),
             NeuButton(

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
 import 'services/audio_service.dart';
 import 'services/library_service.dart';
+import 'services/playlist_service.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/library_screen.dart';
@@ -31,6 +32,7 @@ class MusicStudioApp extends StatelessWidget {
       title: 'Music Studio',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       home: const SplashScreenWrapper(),
     );
   }
@@ -66,24 +68,39 @@ class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
   late final AudioService _audioService;
   late final LibraryService _libraryService;
+  late final PlaylistService _playlistService;
+  final _themeProvider = ThemeProvider();
 
   @override
   void initState() {
     super.initState();
     _audioService = AudioService();
     _libraryService = LibraryService();
+    _playlistService = PlaylistService();
     _libraryService.loadSavedData();
+    _playlistService.loadPlaylists();
+    _themeProvider.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    AppColors.applyTheme(_themeProvider.isDark);
+    Neumorphic.applyTheme(_themeProvider.isDark);
+    setState(() {});
   }
 
   @override
   void dispose() {
+    _themeProvider.removeListener(_onThemeChange);
     _audioService.dispose();
     _libraryService.dispose();
+    _playlistService.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -94,9 +111,9 @@ class _AppShellState extends State<AppShell> {
               children: [
                 HomeScreen(audioService: _audioService, libraryService: _libraryService),
                 LibraryScreen(audioService: _audioService, libraryService: _libraryService),
-                const PlaylistsScreen(),
+                PlaylistsScreen(playlistService: _playlistService, audioService: _audioService),
                 EditorScreen(audioService: _audioService),
-                const SettingsScreen(),
+                SettingsScreen(themeProvider: _themeProvider),
               ],
             ),
           ),
@@ -111,9 +128,12 @@ class _AppShellState extends State<AppShell> {
           ),
         ],
       ),
-      bottomNavigationBar: NeuBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.only(bottom: bottomPadding),
+        child: NeuBottomNav(
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+        ),
       ),
     );
   }

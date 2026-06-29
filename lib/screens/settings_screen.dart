@@ -4,18 +4,10 @@ import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 import '../components/neu_switch.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+class SettingsScreen extends StatelessWidget {
+  final ThemeProvider themeProvider;
 
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _darkMode = false;
-  bool _notifications = true;
-  bool _autoSave = true;
-  bool _highQuality = false;
+  SettingsScreen({super.key, required this.themeProvider});
 
   @override
   Widget build(BuildContext context) {
@@ -27,28 +19,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    _buildSection('General', [
-                      _buildSwitchTile('Modo oscuro', Icons.dark_mode_outlined, _darkMode, (v) => setState(() => _darkMode = v)),
-                      _buildSwitchTile('Notificaciones', Icons.notifications_outlined, _notifications, (v) => setState(() => _notifications = v)),
-                      _buildSwitchTile('Guardado automático', Icons.save_outlined, _autoSave, (v) => setState(() => _autoSave = v)),
-                    ]),
-                    const SizedBox(height: 20),
-                    _buildSection('Audio', [
-                      _buildSwitchTile('Alta calidad', Icons.high_quality_outlined, _highQuality, (v) => setState(() => _highQuality = v)),
-                      _buildInfoTile('Formato de exportación', Icons.audio_file_outlined, 'MP3 320kbps'),
-                      _buildInfoTile('Ubicación de descargas', Icons.folder_outlined, '/Music/Downloads'),
-                    ]),
-                    const SizedBox(height: 20),
-                    _buildSection('Acerca de', [
-                      _buildInfoTile('Versión', Icons.info_outline, '1.0.0'),
-                      _buildInfoTile('Desarrollador', Icons.code_outlined, 'MiMoCode'),
-                    ]),
-                    const SizedBox(height: 100),
-                  ],
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: ListenableBuilder(
+                  listenable: themeProvider,
+                  builder: (context, _) {
+                    return Column(
+                      children: [
+                        SizedBox(height: 24),
+                        _buildSection('Apariencia', [
+                          _buildSwitchTile(
+                            'Modo oscuro',
+                            Icons.dark_mode_outlined,
+                            themeProvider.isDark,
+                            (v) => themeProvider.setDark(v),
+                          ),
+                        ]),
+                        SizedBox(height: 20),
+                        _buildSection('General', [
+                          _buildInfoTile('Notificaciones', Icons.notifications_outlined, 'Activadas'),
+                          _buildInfoTile('Idioma', Icons.language, 'Español'),
+                        ]),
+                        SizedBox(height: 20),
+                        _buildSection('Audio', [
+                          _buildInfoTile('Calidad', Icons.high_quality_outlined, '320kbps'),
+                          _buildInfoTile('Formato', Icons.audio_file_outlined, 'MP3'),
+                        ]),
+                        SizedBox(height: 20),
+                        _buildSection('Acerca de', [
+                          _buildInfoTile('Versión', Icons.info_outline, '1.0.0'),
+                          _buildInfoTile('Desarrollador', Icons.code_outlined, 'MiMoCode'),
+                        ]),
+                        SizedBox(height: 100),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -60,18 +64,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      child: Row(
-        children: [
-          const Text(
-            'Configuración',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+      child: Text(
+        'Configuración',
+        style: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
       ),
     );
   }
@@ -82,16 +82,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.textSecondary,
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         NeuCard(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: EdgeInsets.symmetric(vertical: 4),
           borderRadius: 20,
           child: Column(children: children),
         ),
@@ -101,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSwitchTile(String title, IconData icon, bool value, ValueChanged<bool> onChanged) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
           Container(
@@ -114,9 +114,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: Icon(icon, color: AppColors.textSecondary, size: 18),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
-            child: Text(title, style: const TextStyle(fontSize: 15, color: AppColors.textPrimary)),
+            child: Text(title, style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
           ),
           NeuSwitch(value: value, onChanged: onChanged),
         ],
@@ -126,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildInfoTile(String title, IconData icon, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           Container(
@@ -139,11 +139,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: Icon(icon, color: AppColors.textSecondary, size: 18),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
-            child: Text(title, style: const TextStyle(fontSize: 15, color: AppColors.textPrimary)),
+            child: Text(title, style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
           ),
-          Text(value, style: const TextStyle(fontSize: 13, color: AppColors.textDisabled)),
+          Text(value, style: TextStyle(fontSize: 13, color: AppColors.textDisabled)),
         ],
       ),
     );

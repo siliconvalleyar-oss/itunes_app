@@ -9,7 +9,7 @@ import '../widgets/player_controls.dart';
 class PlayerScreen extends StatefulWidget {
   final AudioService audioService;
 
-  const PlayerScreen({super.key, required this.audioService});
+  PlayerScreen({super.key, required this.audioService});
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -30,18 +30,18 @@ class _PlayerScreenState extends State<PlayerScreen> {
             return Column(
               children: [
                 _buildHeader(),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 _buildAlbumArt(song),
-                const SizedBox(height: 28),
+                SizedBox(height: 28),
                 _buildSongInfo(song),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 _buildProgress(),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 PlayerControls(audioService: widget.audioService),
-                const Spacer(),
+                Spacer(),
                 _buildBottomActions(),
                 if (_showEqualizer) _buildEqualizer(),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
               ],
             );
           },
@@ -52,16 +52,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           NeuButton(
             onPressed: () => Navigator.pop(context),
             size: 40,
-            child: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 24),
+            child: Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 24),
           ),
-          const Text(
+          Text(
             'Reproduciendo',
             style: TextStyle(fontSize: 14, color: AppColors.textDisabled),
           ),
@@ -83,7 +83,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Widget _buildAlbumArt(song) {
     return Center(
       child: NeuCard(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         borderRadius: 28,
         child: Container(
           width: 260,
@@ -98,7 +98,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   borderRadius: BorderRadius.circular(24),
                   child: Image.memory(song!.coverArt!, fit: BoxFit.cover),
                 )
-              : const Icon(Icons.music_note, color: AppColors.textDisabled, size: 64),
+              : Icon(Icons.music_note, color: AppColors.textDisabled, size: 64),
         ),
       ),
     );
@@ -106,12 +106,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Widget _buildSongInfo(song) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      padding: EdgeInsets.symmetric(horizontal: 40),
       child: Column(
         children: [
           Text(
             song?.title ?? 'Sin canción',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -120,10 +120,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             song?.artist ?? 'Artista',
-            style: const TextStyle(fontSize: 15, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -132,7 +132,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Widget _buildProgress() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
           NeuSlider(
@@ -147,14 +147,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
               widget.audioService.seek(pos);
             },
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(_fmt(widget.audioService.position),
-                  style: const TextStyle(fontSize: 12, color: AppColors.textDisabled)),
+                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled)),
               Text(_fmt(widget.audioService.duration),
-                  style: const TextStyle(fontSize: 12, color: AppColors.textDisabled)),
+                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled)),
             ],
           ),
         ],
@@ -164,24 +164,24 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Widget _buildBottomActions() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 48),
+      padding: EdgeInsets.symmetric(horizontal: 48),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           NeuButton(
             onPressed: () {},
             size: 40,
-            child: const Icon(Icons.share_outlined, color: AppColors.textSecondary, size: 18),
+            child: Icon(Icons.share_outlined, color: AppColors.textSecondary, size: 18),
           ),
           NeuButton(
             onPressed: () {},
             size: 40,
-            child: const Icon(Icons.favorite_border, color: AppColors.textSecondary, size: 18),
+            child: Icon(Icons.favorite_border, color: AppColors.textSecondary, size: 18),
           ),
           NeuButton(
             onPressed: () {},
             size: 40,
-            child: const Icon(Icons.queue_music_outlined, color: AppColors.textSecondary, size: 18),
+            child: Icon(Icons.queue_music_outlined, color: AppColors.textSecondary, size: 18),
           ),
         ],
       ),
@@ -191,16 +191,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Widget _buildEqualizer() {
     final presets = ['Normal', 'Rock', 'Pop', 'Jazz', 'Bass'];
     return Container(
-      margin: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+      margin: EdgeInsets.fromLTRB(24, 0, 24, 0),
       child: NeuCard(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         borderRadius: 20,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Ecualizador',
+            Text('Ecualizador',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             SizedBox(
               height: 32,
               child: ListView.builder(
@@ -208,9 +208,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 itemCount: presets.length,
                 itemBuilder: (context, i) {
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: EdgeInsets.only(right: 8),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      padding: EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
                         color: i == 0 ? AppColors.accent.withOpacity(0.15) : AppColors.surface,
                         borderRadius: BorderRadius.circular(12),
@@ -227,7 +227,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             SizedBox(
               height: 80,
               child: Row(
@@ -241,7 +241,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
                               trackHeight: 3,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
                               activeTrackColor: AppColors.accent,
                               inactiveTrackColor: AppColors.surface,
                               thumbColor: AppColors.background,
@@ -251,7 +251,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         ),
                       ),
                       Text(['60', '1K', '3K', '6K', '14K'][i],
-                          style: const TextStyle(fontSize: 9, color: AppColors.textDisabled)),
+                          style: TextStyle(fontSize: 9, color: AppColors.textDisabled)),
                     ],
                   );
                 }),

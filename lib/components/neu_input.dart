@@ -35,7 +35,7 @@ class NeuInput extends StatelessWidget {
           if (label != null) ...[
             Text(
               label!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
@@ -56,13 +56,13 @@ class NeuInput extends StatelessWidget {
               readOnly: readOnly,
               onTap: onTap,
               onChanged: onChanged,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 15,
               ),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: const TextStyle(color: AppColors.textDisabled),
+                hintStyle: TextStyle(color: AppColors.textDisabled),
                 prefixIcon: icon != null
                     ? Icon(icon, color: AppColors.textDisabled, size: 18)
                     : null,

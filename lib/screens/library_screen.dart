@@ -11,7 +11,7 @@ class LibraryScreen extends StatefulWidget {
   final AudioService audioService;
   final LibraryService libraryService;
 
-  const LibraryScreen({
+  LibraryScreen({
     super.key,
     required this.audioService,
     required this.libraryService,
@@ -63,9 +63,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
           children: [
             _buildHeader(),
             _buildTabs(),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             _buildStats(),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Expanded(
               child: _buildSongList(),
             ),
@@ -77,10 +77,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
-          const Text(
+          Text(
             'Biblioteca',
             style: TextStyle(
               fontSize: 28,
@@ -88,11 +88,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
               color: AppColors.textPrimary,
             ),
           ),
-          const Spacer(),
+          Spacer(),
           NeuButton(
             onPressed: () {},
             size: 40,
-            child: const Icon(Icons.filter_list, color: AppColors.textSecondary, size: 18),
+            child: Icon(Icons.filter_list, color: AppColors.textSecondary, size: 18),
           ),
         ],
       ),
@@ -102,7 +102,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget _buildTabs() {
     return Container(
       height: 44,
-      margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      margin: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
           _buildTab(0, 'Todas'),
@@ -120,8 +120,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
       child: GestureDetector(
         onTap: () => setState(() => _currentTab = index),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          margin: const EdgeInsets.symmetric(horizontal: 3),
+          duration: Duration(milliseconds: 250),
+          margin: EdgeInsets.symmetric(horizontal: 3),
           decoration: BoxDecoration(
             color: isActive ? AppColors.accent.withOpacity(0.15) : AppColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -147,13 +147,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
       listenable: widget.libraryService,
       builder: (context, _) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: EdgeInsets.symmetric(horizontal: 24),
           child: Row(
             children: [
               _buildStat('Canciones', '${widget.libraryService.allSongs.length}'),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               _buildStat('Favoritos', '${widget.libraryService.favorites.length}'),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               _buildStat('Escuchadas', '${widget.libraryService.mostPlayed.length}'),
             ],
           ),
@@ -165,13 +165,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget _buildStat(String label, String value) {
     return Expanded(
       child: NeuCard(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         borderRadius: 16,
         child: Column(
           children: [
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textDisabled)),
+            Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            SizedBox(height: 2),
+            Text(label, style: TextStyle(fontSize: 11, color: AppColors.textDisabled)),
           ],
         ),
       ),
@@ -196,19 +196,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     shape: BoxShape.circle,
                     boxShadow: Neumorphic.inset,
                   ),
-                  child: const Icon(Icons.music_off, color: AppColors.textDisabled, size: 32),
+                  child: Icon(Icons.music_off, color: AppColors.textDisabled, size: 32),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   _currentTab == 1 ? 'No hay favoritos' : 'Sin canciones',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
                 ),
               ],
             ),
           );
         }
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: EdgeInsets.symmetric(horizontal: 24),
           itemCount: songs.length,
           itemBuilder: (context, index) {
             final song = songs[index];

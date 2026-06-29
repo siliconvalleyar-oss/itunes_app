@@ -44,8 +44,8 @@ class SongTile extends StatelessWidget {
                   boxShadow: Neumorphic.inset,
                 ),
                 child: isPlaying
-                    ? const Icon(Icons.equalizer, color: AppColors.accent, size: 20)
-                    : const Icon(Icons.music_note, color: AppColors.textDisabled, size: 20),
+                    ? Icon(Icons.equalizer, color: AppColors.accent, size: 20)
+                    : Icon(Icons.music_note, color: AppColors.textDisabled, size: 20),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -67,7 +67,7 @@ class SongTile extends StatelessWidget {
                       song.artist,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),

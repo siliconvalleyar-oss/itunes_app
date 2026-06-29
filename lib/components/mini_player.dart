@@ -7,7 +7,7 @@ class MiniPlayer extends StatelessWidget {
   final AudioService audioService;
   final VoidCallback? onTap;
 
-  const MiniPlayer({
+  MiniPlayer({
     super.key,
     required this.audioService,
     this.onTap,
@@ -19,14 +19,14 @@ class MiniPlayer extends StatelessWidget {
       listenable: audioService,
       builder: (context, _) {
         final song = audioService.currentSong;
-        if (song == null) return const SizedBox.shrink();
+        if (song == null) return SizedBox.shrink();
 
         return GestureDetector(
           onTap: onTap,
           child: Container(
-            margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            margin: EdgeInsets.fromLTRB(20, 0, 20, 8),
             child: NeuCard(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               borderRadius: 18,
               child: Row(
                 children: [
@@ -43,9 +43,9 @@ class MiniPlayer extends StatelessWidget {
                       ),
                       boxShadow: Neumorphic.subtle,
                     ),
-                    child: const Icon(Icons.music_note, color: AppColors.textSecondary, size: 20),
+                    child: Icon(Icons.music_note, color: AppColors.textSecondary, size: 20),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +55,7 @@ class MiniPlayer extends StatelessWidget {
                           song.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -65,7 +65,7 @@ class MiniPlayer extends StatelessWidget {
                           song.artist,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 11,
                           ),
@@ -96,7 +96,7 @@ class MiniPlayer extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   GestureDetector(
                     onTap: audioService.next,
                     child: Container(
@@ -107,7 +107,7 @@ class MiniPlayer extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: Neumorphic.subtle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.skip_next,
                         color: AppColors.textSecondary,
                         size: 18,
