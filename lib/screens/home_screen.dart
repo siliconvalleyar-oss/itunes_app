@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../services/audio_service.dart';
 import '../services/library_service.dart';
 import '../services/music_scanner.dart';
+import '../services/permission_service.dart';
 import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 import '../components/neu_slider.dart';
@@ -26,10 +27,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final MusicScanner _scanner = MusicScanner();
+  bool _permissionGranted = false;
+  bool _permissionLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _scanMusic();
+    _requestPermissionAndScan();
+  }
+
+  Future<void> _requestPermissionAndScan() async {
+    final granted = await PermissionService.requestAudioPermission();
+    if (!mounted) return;
+    setState(() {
+      _permissionGranted = granted;
+      _permissionLoading = false;
+    });
+    if (granted) {
+      _scanMusic();
+    }
   }
 
   Future<void> _scanMusic() async {
@@ -45,31 +61,35 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    SizedBox(height: 24),
-                    _buildNowPlaying(),
-                    SizedBox(height: 32),
-                    _buildControls(),
-                    SizedBox(height: 24),
-                    _buildProgressBar(),
-                    SizedBox(height: 24),
-                    _buildInfoChips(),
-                    SizedBox(height: 24),
-                    _buildVisualizer(),
-                    SizedBox(height: 100),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: _permissionLoading
+            ? const Center(child: CircularProgressIndicator())
+            : !_permissionGranted
+                ? _buildPermissionDenied()
+                : Column(
+                    children: [
+                      _buildHeader(),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: [
+                              SizedBox(height: 24),
+                              _buildNowPlaying(),
+                              SizedBox(height: 32),
+                              _buildControls(),
+                              SizedBox(height: 24),
+                              _buildProgressBar(),
+                              SizedBox(height: 24),
+                              _buildInfoChips(),
+                              SizedBox(height: 24),
+                              _buildVisualizer(),
+                              SizedBox(height: 100),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
       ),
       bottomNavigationBar: MiniPlayer(
         audioService: widget.audioService,
@@ -78,6 +98,70 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (_) => PlayerScreen(audioService: widget.audioService),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPermissionDenied() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                boxShadow: Neumorphic.inset,
+              ),
+              child: Icon(Icons.music_off, color: AppColors.textDisabled, size: 36),
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Permiso necesario',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Para leer tus canciones, concede permiso de acceso a audio.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            SizedBox(height: 24),
+            GestureDetector(
+              onTap: () async {
+                final granted = await PermissionService.requestAudioPermission();
+                if (mounted) {
+                  setState(() => _permissionGranted = granted);
+                  if (granted) _scanMusic();
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: Neumorphic.raised,
+                ),
+                child: Text(
+                  'Conceder permiso',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
