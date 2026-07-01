@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/song.dart';
 
 class AudioService extends ChangeNotifier {
-  final AudioPlayer _player = AudioPlayer();
+  late final AudioPlayer _player;
+  AndroidEqualizer? _equalizer;
+  AndroidEqualizerParameters? _eqParams;
+  bool _eqEnabled = false;
   List<Song> _playlist = [];
   int _currentIndex = -1;
   bool _isShuffled = false;
@@ -22,8 +26,22 @@ class AudioService extends ChangeNotifier {
   Duration get duration => _player.duration ?? Duration.zero;
   bool get isShuffled => _isShuffled;
   LoopMode get loopMode => _loopMode;
+  bool get equalizerEnabled => _eqEnabled;
+  AndroidEqualizerParameters? get equalizerParameters => _eqParams;
+  AndroidEqualizer? get equalizer => _equalizer;
 
   AudioService() {
+    if (Platform.isAndroid) {
+      _equalizer = AndroidEqualizer();
+      _player = AudioPlayer(
+        audioPipeline: AudioPipeline(
+          androidAudioEffects: [_equalizer!],
+        ),
+      );
+      _initEqualizer();
+    } else {
+      _player = AudioPlayer();
+    }
     _player.positionStream.listen((_) => notifyListeners());
     _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed) {
@@ -31,6 +49,41 @@ class AudioService extends ChangeNotifier {
       }
       notifyListeners();
     });
+  }
+
+  Future<void> _initEqualizer() async {
+    try {
+      final params = await _equalizer!.parameters;
+      _eqParams = params;
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> setEqualizerEnabled(bool enabled) async {
+    _eqEnabled = enabled;
+    try {
+      // AndroidEqualizer doesn't have enable/disable directly,
+      // we restore gains when enabling, set all to 0 when disabling
+      if (_eqParams != null) {
+        for (final band in _eqParams!.bands) {
+          await band.setGain(enabled ? 0 : 0);
+        }
+      }
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  Future<void> setEqualizerBandGain(int bandIndex, double gainDecibels) async {
+    try {
+      if (_eqParams != null && bandIndex < _eqParams!.bands.length) {
+        await _eqParams!.bands[bandIndex].setGain(gainDecibels);
+      }
+    } catch (_) {}
+  }
+
+  void toggleEqualizer() {
+    _eqEnabled = !_eqEnabled;
+    setEqualizerEnabled(_eqEnabled);
   }
 
   void setPlaylist(List<Song> songs) {

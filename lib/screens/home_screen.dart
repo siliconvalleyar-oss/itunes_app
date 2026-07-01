@@ -5,6 +5,7 @@ import '../services/audio_service.dart';
 import '../services/library_service.dart';
 import '../services/music_scanner.dart';
 import '../services/permission_service.dart';
+import '../services/playlist_service.dart';
 import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 import '../components/neu_slider.dart';
@@ -14,11 +15,13 @@ import 'player_screen.dart';
 class HomeScreen extends StatefulWidget {
   final AudioService audioService;
   final LibraryService libraryService;
+  final PlaylistService playlistService;
 
   HomeScreen({
     super.key,
     required this.audioService,
     required this.libraryService,
+    required this.playlistService,
   });
 
   @override
@@ -120,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => PlayerScreen(audioService: widget.audioService),
+            builder: (_) => PlayerScreen(audioService: widget.audioService, playlistService: widget.playlistService),
           ),
         ),
       ),

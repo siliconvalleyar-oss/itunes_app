@@ -9,15 +9,20 @@ class LibraryService extends ChangeNotifier {
   List<Song> _favorites = [];
   List<Song> _recentlyPlayed = [];
   Map<String, int> _playCounts = {};
+  Set<String> _ignoredIds = {};
 
-  List<Song> get allSongs => _allSongs;
-  List<Song> get favorites => _favorites;
-  List<Song> get recentlyPlayed => _recentlyPlayed;
+  List<Song> get allSongs => _allSongs.where((s) => !_ignoredIds.contains(s.id)).toList();
+  List<Song> get allSongsUnfiltered => _allSongs;
+  List<Song> get favorites =>
+      _favorites.where((s) => !_ignoredIds.contains(s.id)).toList();
+  List<Song> get recentlyPlayed =>
+      _recentlyPlayed.where((s) => !_ignoredIds.contains(s.id)).toList();
+  Set<String> get ignoredIds => _ignoredIds;
 
   List<Song> get mostPlayed {
     final sorted = List<Song>.from(_allSongs);
     sorted.sort((a, b) => (_playCounts[b.id] ?? 0).compareTo(_playCounts[a.id] ?? 0));
-    return sorted.where((s) => (_playCounts[s.id] ?? 0) > 0).toList();
+    return sorted.where((s) => (_playCounts[s.id] ?? 0) > 0 && !_ignoredIds.contains(s.id)).toList();
   }
 
   void setSongs(List<Song> songs) {
@@ -38,6 +43,24 @@ class LibraryService extends ChangeNotifier {
 
   bool isFavorite(String songId) {
     return _favorites.any((s) => s.id == songId);
+  }
+
+  void toggleIgnored(Song song) {
+    if (_ignoredIds.contains(song.id)) {
+      _ignoredIds.remove(song.id);
+    } else {
+      _ignoredIds.add(song.id);
+    }
+    _saveIgnored();
+    notifyListeners();
+  }
+
+  bool isIgnored(String songId) => _ignoredIds.contains(songId);
+
+  Future<void> restoreIgnored(Song song) async {
+    _ignoredIds.remove(song.id);
+    _saveIgnored();
+    notifyListeners();
   }
 
   void recordPlay(Song song) {
@@ -73,6 +96,14 @@ class LibraryService extends ChangeNotifier {
     } catch (_) {}
   }
 
+  Future<void> _saveIgnored() async {
+    try {
+      final dir = await _getDataDir();
+      final file = File('${dir.path}/ignored.json');
+      await file.writeAsString(jsonEncode(_ignoredIds.toList()));
+    } catch (_) {}
+  }
+
   Future<void> loadSavedData() async {
     try {
       final dir = await _getDataDir();
@@ -90,6 +121,12 @@ class LibraryService extends ChangeNotifier {
         _recentlyPlayed = (data['recentlyPlayed'] as List? ?? [])
             .map((m) => Song.fromMap(m))
             .toList();
+      }
+
+      final ignoredFile = File('${dir.path}/ignored.json');
+      if (await ignoredFile.exists()) {
+        final data = jsonDecode(await ignoredFile.readAsString()) as List;
+        _ignoredIds = data.map((e) => e.toString()).toSet();
       }
     } catch (_) {}
     notifyListeners();

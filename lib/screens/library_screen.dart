@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/audio_service.dart';
 import '../services/library_service.dart';
+import '../services/playlist_service.dart';
 import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 import '../widgets/song_tile.dart';
@@ -10,11 +11,13 @@ import 'player_screen.dart';
 class LibraryScreen extends StatefulWidget {
   final AudioService audioService;
   final LibraryService libraryService;
+  final PlaylistService playlistService;
 
   LibraryScreen({
     super.key,
     required this.audioService,
     required this.libraryService,
+    required this.playlistService,
   });
 
   @override
@@ -202,13 +205,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
               audioService: widget.audioService,
               isFavorite: widget.libraryService.isFavorite(song.id),
               onFavoriteToggle: () => widget.libraryService.toggleFavorite(song),
+              onHide: () => widget.libraryService.toggleIgnored(song),
               onTap: () {
                 widget.libraryService.recordPlay(song);
                 widget.audioService.play(song);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => PlayerScreen(audioService: widget.audioService),
+                    builder: (_) => PlayerScreen(audioService: widget.audioService, playlistService: widget.playlistService),
                   ),
                 );
               },

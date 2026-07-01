@@ -109,8 +109,8 @@ class _AppShellState extends State<AppShell> {
             child: IndexedStack(
               index: _currentIndex,
               children: [
-                HomeScreen(audioService: _audioService, libraryService: _libraryService),
-                LibraryScreen(audioService: _audioService, libraryService: _libraryService),
+                HomeScreen(audioService: _audioService, libraryService: _libraryService, playlistService: _playlistService),
+                LibraryScreen(audioService: _audioService, libraryService: _libraryService, playlistService: _playlistService),
                 PlaylistsScreen(playlistService: _playlistService, audioService: _audioService),
                 EditorScreen(audioService: _audioService),
                 SettingsScreen(themeProvider: _themeProvider),
@@ -122,7 +122,7 @@ class _AppShellState extends State<AppShell> {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => PlayerScreen(audioService: _audioService),
+                builder: (_) => PlayerScreen(audioService: _audioService, playlistService: _playlistService),
               ),
             ),
           ),
