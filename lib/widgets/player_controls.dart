@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import '../theme/app_theme.dart';
 import '../services/audio_service.dart';
 import '../components/neu_button.dart';
@@ -59,10 +60,10 @@ class PlayerControls extends StatelessWidget {
             NeuButton(
               onPressed: audioService.cycleLoopMode,
               size: 44,
-              isActive: audioService.loopMode != 0,
+              isActive: audioService.loopMode != LoopMode.off,
               child: Icon(
-                audioService.loopMode == 2 ? Icons.repeat_one : Icons.repeat,
-                color: audioService.loopMode != 0 ? AppColors.accent : AppColors.textDisabled,
+                audioService.loopMode == LoopMode.one ? Icons.repeat_one : Icons.repeat,
+                color: audioService.loopMode != LoopMode.off ? AppColors.accent : AppColors.textDisabled,
                 size: 18,
               ),
             ),

@@ -212,7 +212,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
-                        color: i == 0 ? AppColors.accent.withOpacity(0.15) : AppColors.surface,
+                        color: i == 0 ? AppColors.accent.withValues(alpha: 0.15) : AppColors.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: i == 0 ? [] : Neumorphic.inset,
                       ),

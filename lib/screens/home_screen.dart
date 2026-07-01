@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import '../theme/app_theme.dart';
-import '../models/song.dart';
 import '../services/audio_service.dart';
 import '../services/library_service.dart';
 import '../services/music_scanner.dart';
@@ -8,7 +8,6 @@ import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 import '../components/neu_slider.dart';
 import '../components/mini_player.dart';
-import '../widgets/song_tile.dart';
 import 'player_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -27,8 +26,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final MusicScanner _scanner = MusicScanner();
-  bool _isScanning = false;
-
   @override
   void initState() {
     super.initState();
@@ -36,13 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _scanMusic() async {
-    setState(() => _isScanning = true);
     try {
       final songs = await _scanner.scanDevice();
       widget.libraryService.setSongs(songs);
       widget.audioService.setPlaylist(songs);
     } catch (_) {}
-    setState(() => _isScanning = false);
   }
 
   @override
@@ -135,8 +130,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.accent.withOpacity(0.15),
-                      AppColors.accentAlt.withOpacity(0.15),
+                      AppColors.accent.withValues(alpha: 0.15),
+                      AppColors.accentAlt.withValues(alpha: 0.15),
                     ],
                   ),
                   boxShadow: Neumorphic.inset,
@@ -239,10 +234,10 @@ class _HomeScreenState extends State<HomeScreen> {
             NeuButton(
               onPressed: widget.audioService.cycleLoopMode,
               size: 48,
-              isActive: widget.audioService.loopMode != 0,
+              isActive: widget.audioService.loopMode != LoopMode.off,
               child: Icon(
-                widget.audioService.loopMode == 2 ? Icons.repeat_one : Icons.repeat,
-                color: widget.audioService.loopMode != 0
+                widget.audioService.loopMode == LoopMode.one ? Icons.repeat_one : Icons.repeat,
+                color: widget.audioService.loopMode != LoopMode.off
                     ? AppColors.accent
                     : AppColors.textSecondary,
                 size: 20,
@@ -341,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 4,
               height: h,
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.3 + (i % 3) * 0.15),
+                color: AppColors.accent.withValues(alpha: 0.3 + (i % 3) * 0.15),
                 borderRadius: BorderRadius.circular(2),
               ),
             );

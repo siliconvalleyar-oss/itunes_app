@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../components/neu_card.dart';
-import '../components/neu_button.dart';
 import '../components/neu_switch.dart';
 
 class SettingsScreen extends StatelessWidget {

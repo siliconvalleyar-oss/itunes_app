@@ -44,7 +44,7 @@ class NeuBottomNav extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.accent.withOpacity(0.15) : Colors.transparent,
+          color: isActive ? AppColors.accent.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           boxShadow: isActive ? Neumorphic.subtle : [],
         ),

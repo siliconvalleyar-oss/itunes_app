@@ -43,7 +43,7 @@ class _NeuButtonState extends State<NeuButton> {
         height: widget.size,
         decoration: BoxDecoration(
           color: widget.isActive
-              ? AppColors.accent.withOpacity(0.15)
+              ? AppColors.accent.withValues(alpha: 0.15)
               : AppColors.background,
           shape: widget.isCircle ? BoxShape.circle : BoxShape.rectangle,
           borderRadius: widget.isCircle ? null : BorderRadius.circular(18),

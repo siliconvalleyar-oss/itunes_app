@@ -98,7 +98,7 @@ class AudioService extends ChangeNotifier {
   }
 
   void cycleLoopMode() {
-    const modes = [LoopMode.off, LoopMode.all, LoopMode.one];
+    final modes = [LoopMode.off, LoopMode.all, LoopMode.one];
     final nextIndex = (modes.indexOf(_loopMode) + 1) % modes.length;
     _loopMode = modes[nextIndex];
     _player.setLoopMode(_loopMode);

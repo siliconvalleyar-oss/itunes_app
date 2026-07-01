@@ -39,21 +39,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
-  String get _currentTitle {
-    switch (_currentTab) {
-      case 0:
-        return 'Todas';
-      case 1:
-        return 'Favoritos';
-      case 2:
-        return 'Más Escuchados';
-      case 3:
-        return 'Recientes';
-      default:
-        return 'Todas';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,7 +108,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           duration: Duration(milliseconds: 250),
           margin: EdgeInsets.symmetric(horizontal: 3),
           decoration: BoxDecoration(
-            color: isActive ? AppColors.accent.withOpacity(0.15) : AppColors.surface,
+            color: isActive ? AppColors.accent.withValues(alpha: 0.15) : AppColors.surface,
             borderRadius: BorderRadius.circular(14),
             boxShadow: isActive ? [] : Neumorphic.inset,
           ),

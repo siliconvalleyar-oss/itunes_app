@@ -124,7 +124,7 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
                 duration: Duration(milliseconds: 250),
                 padding: EdgeInsets.symmetric(horizontal: 18),
                 decoration: BoxDecoration(
-                  color: isActive ? AppColors.accent.withOpacity(0.15) : AppColors.surface,
+                  color: isActive ? AppColors.accent.withValues(alpha: 0.15) : AppColors.surface,
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: isActive ? [] : Neumorphic.inset,
                 ),

@@ -37,8 +37,8 @@ class MiniPlayer extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.accent.withOpacity(0.3),
-                          AppColors.accentAlt.withOpacity(0.3),
+                          AppColors.accent.withValues(alpha: 0.3),
+                          AppColors.accentAlt.withValues(alpha: 0.3),
                         ],
                       ),
                       boxShadow: Neumorphic.subtle,

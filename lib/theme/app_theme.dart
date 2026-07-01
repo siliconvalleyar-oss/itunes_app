@@ -74,12 +74,12 @@ class Neumorphic {
 
   static List<BoxShadow> get raised => [
     BoxShadow(
-      color: light.withOpacity(0.95),
+      color: light.withValues(alpha: 0.95),
       offset: const Offset(-8, -8),
       blurRadius: 18,
     ),
     BoxShadow(
-      color: dark.withOpacity(0.12),
+      color: dark.withValues(alpha: 0.12),
       offset: const Offset(8, 8),
       blurRadius: 18,
     ),
@@ -87,12 +87,12 @@ class Neumorphic {
 
   static List<BoxShadow> get inset => [
     BoxShadow(
-      color: dark.withOpacity(0.12),
+      color: dark.withValues(alpha: 0.12),
       offset: const Offset(4, 4),
       blurRadius: 8,
     ),
     BoxShadow(
-      color: light.withOpacity(0.95),
+      color: light.withValues(alpha: 0.95),
       offset: const Offset(-4, -4),
       blurRadius: 8,
     ),
@@ -100,12 +100,12 @@ class Neumorphic {
 
   static List<BoxShadow> get subtle => [
     BoxShadow(
-      color: light.withOpacity(0.8),
+      color: light.withValues(alpha: 0.8),
       offset: const Offset(-4, -4),
       blurRadius: 10,
     ),
     BoxShadow(
-      color: dark.withOpacity(0.08),
+      color: dark.withValues(alpha: 0.08),
       offset: const Offset(4, 4),
       blurRadius: 10,
     ),
