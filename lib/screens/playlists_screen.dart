@@ -148,16 +148,33 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
                                   ],
                                 ),
                               ),
-                              NeuButton(
-                                onPressed: () => _showRenameDialog(pl),
-                                size: 32,
-                                child: Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 14),
-                              ),
-                              SizedBox(width: 8),
-                              NeuButton(
-                                onPressed: () => _showDeleteDialog(pl.id),
-                                size: 32,
-                                child: Icon(Icons.delete_outline, color: AppColors.error, size: 16),
+                              PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  if (value == 'edit') _showRenameDialog(pl);
+                                  if (value == 'delete') _showDeleteDialog(pl.id);
+                                },
+                                color: AppColors.surface,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                itemBuilder: (_) => [
+                                  PopupMenuItem(value: 'edit', child: Row(
+                                    children: [
+                                      Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 18),
+                                      SizedBox(width: 12),
+                                      Text('Renombrar', style: TextStyle(color: AppColors.textPrimary)),
+                                    ],
+                                  )),
+                                  PopupMenuItem(value: 'delete', child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline, color: AppColors.error, size: 18),
+                                      SizedBox(width: 12),
+                                      Text('Eliminar', style: TextStyle(color: AppColors.error)),
+                                    ],
+                                  )),
+                                ],
+                                child: Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Icon(Icons.more_vert, color: AppColors.textSecondary, size: 20),
+                                ),
                               ),
                             ],
                           ),
