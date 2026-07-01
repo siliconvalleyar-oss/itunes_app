@@ -167,6 +167,16 @@ class AudioService extends ChangeNotifier {
     }
   }
 
+  void syncPlaylist(List<Song> filteredSongs) {
+    final currentId = currentSong?.id;
+    _playlist = List.from(filteredSongs);
+    if (currentId != null) {
+      _currentIndex = _playlist.indexWhere((s) => s.id == currentId);
+      if (_currentIndex < 0) _currentIndex = 0;
+    }
+    notifyListeners();
+  }
+
   Future<void> setVolume(double volume) async {
     await _player.setVolume(volume);
     notifyListeners();

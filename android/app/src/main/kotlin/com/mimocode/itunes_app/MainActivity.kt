@@ -8,6 +8,7 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.mimocode.itunes_app/scanner"
+    private val META_CHANNEL = "com.mimocode.itunes_app/metadata"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -16,6 +17,36 @@ class MainActivity : FlutterActivity() {
             if (call.method == "getAudioFiles") {
                 val songs = getAudioFiles()
                 result.success(songs)
+            } else {
+                result.notImplemented()
+            }
+        }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, META_CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "writeMetadata") {
+                val args = call.arguments as Map<String, Any?>
+                val contentUriStr = args["contentUri"] as String?
+                val title = args["title"] as String?
+                val artist = args["artist"] as String?
+                val album = args["album"] as String?
+
+                if (contentUriStr == null) {
+                    result.error("INVALID_ARGS", "contentUri required", null)
+                    return@setMethodCallHandler
+                }
+
+                try {
+                    val uri = android.net.Uri.parse(contentUriStr)
+                    val values = android.content.ContentValues()
+                    if (title != null && title.isNotEmpty()) values.put(MediaStore.Audio.Media.TITLE, title)
+                    if (artist != null && artist.isNotEmpty()) values.put(MediaStore.Audio.Media.ARTIST, artist)
+                    if (album != null && album.isNotEmpty()) values.put(MediaStore.Audio.Media.ALBUM, album)
+
+                    val updated = contentResolver.update(uri, values, null, null)
+                    result.success(updated > 0)
+                } catch (e: Exception) {
+                    result.error("WRITE_FAILED", e.message, null)
+                }
             } else {
                 result.notImplemented()
             }

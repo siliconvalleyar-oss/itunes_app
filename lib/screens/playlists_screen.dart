@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
 import '../services/playlist_service.dart';
 import '../services/audio_service.dart';
@@ -110,15 +112,20 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
                           borderRadius: 20,
                           child: Row(
                             children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: Neumorphic.inset,
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: Neumorphic.inset,
+                                  ),
+                                  child: pl.coverPath != null
+                                      ? Image.file(File(pl.coverPath!), fit: BoxFit.cover)
+                                      : Icon(Icons.music_note, color: AppColors.accent, size: 24),
                                 ),
-                                child: Icon(Icons.music_note, color: AppColors.accent, size: 24),
                               ),
                               SizedBox(width: 16),
                               Expanded(
@@ -539,11 +546,134 @@ class _PlaylistDetailScreenState extends State<_PlaylistDetailScreen> {
                 ),
             ],
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 12),
+          GestureDetector(
+            onTap: _pickPlaylistCover,
+            child: Center(
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: Neumorphic.inset,
+                ),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: widget.playlist.coverPath != null
+                          ? Image.file(File(widget.playlist.coverPath!), fit: BoxFit.cover, width: 180, height: 180)
+                          : Center(child: Icon(Icons.music_note, color: AppColors.textDisabled, size: 48)),
+                    ),
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.background.withValues(alpha: 0.8),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.camera_alt_outlined, size: 14, color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 12),
           Text('${widget.playlist.songs.length} canciones',
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           SizedBox(height: 8),
         ],
+      ),
+    );
+  }
+
+  void _pickPlaylistCover() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Imagen de portada',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            SizedBox(height: 24),
+            GestureDetector(
+              onTap: () async {
+                Navigator.pop(ctx);
+                final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+                if (picked != null) {
+                  await widget.playlistService.savePlaylistCover(widget.playlist.id, picked.path);
+                  if (mounted) setState(() {});
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.photo_library_outlined, color: AppColors.textSecondary, size: 20),
+                    SizedBox(width: 12),
+                    Text('Seleccionar de galería',
+                        style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
+                  ],
+                ),
+              ),
+            ),
+            if (widget.playlist.coverPath != null) ...[
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  widget.playlist.coverPath = null;
+                  widget.playlistService.notifyListeners();
+                  if (mounted) setState(() {});
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                      SizedBox(width: 12),
+                      Text('Quitar imagen',
+                          style: TextStyle(fontSize: 15, color: AppColors.error)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => Navigator.pop(ctx),
+              child: Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

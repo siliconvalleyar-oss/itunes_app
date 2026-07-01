@@ -9,12 +9,14 @@ class Playlist {
   String name;
   List<Song> songs;
   final DateTime createdAt;
+  String? coverPath;
 
   Playlist({
     required this.id,
     required this.name,
     List<Song>? songs,
     DateTime? createdAt,
+    this.coverPath,
   })  : songs = songs ?? [],
         createdAt = createdAt ?? DateTime.now();
 
@@ -23,6 +25,7 @@ class Playlist {
     'name': name,
     'songs': songs.map((s) => s.toMap()).toList(),
     'createdAt': createdAt.toIso8601String(),
+    'coverPath': coverPath,
   };
 
   factory Playlist.fromMap(Map<String, dynamic> m) => Playlist(
@@ -30,6 +33,7 @@ class Playlist {
     name: m['name'],
     songs: (m['songs'] as List? ?? []).map((s) => Song.fromMap(s)).toList(),
     createdAt: DateTime.parse(m['createdAt']),
+    coverPath: m['coverPath'],
   );
 }
 
@@ -95,6 +99,25 @@ class PlaylistService extends ChangeNotifier {
       }
     } catch (_) {}
     notifyListeners();
+  }
+
+  Future<String?> savePlaylistCover(String playlistId, String sourcePath) async {
+    try {
+      final dir = await _getDataDir();
+      final coverDir = Directory('${dir.path}/covers');
+      if (!await coverDir.exists()) {
+        await coverDir.create(recursive: true);
+      }
+      final dest = '${coverDir.path}/pl_$playlistId.jpg';
+      await File(sourcePath).copy(dest);
+      final pl = _playlists.firstWhere((p) => p.id == playlistId);
+      pl.coverPath = dest;
+      _savePlaylists();
+      notifyListeners();
+      return dest;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<Directory> _getDataDir() async {

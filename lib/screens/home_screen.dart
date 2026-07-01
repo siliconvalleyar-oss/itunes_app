@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../theme/app_theme.dart';
@@ -38,11 +39,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _checkPermissionAndScan();
+    widget.libraryService.addListener(_onLibraryChanged);
+  }
+
+  void _onLibraryChanged() {
+    widget.audioService.syncPlaylist(widget.libraryService.allSongs);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    widget.libraryService.removeListener(_onLibraryChanged);
     super.dispose();
   }
 
@@ -79,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       final songs = await _scanner.scanDevice();
       widget.libraryService.setSongs(songs);
-      widget.audioService.setPlaylist(songs);
+      widget.audioService.setPlaylist(widget.libraryService.allSongs);
     } catch (_) {}
   }
 
@@ -247,7 +254,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                   boxShadow: Neumorphic.inset,
                 ),
-                child: song?.coverArt != null
+                child: song?.localCoverPath != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Image.file(File(song!.localCoverPath!), fit: BoxFit.cover),
+                      )
+                    : song?.coverArt != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(24),
                         child: Image.memory(song!.coverArt!, fit: BoxFit.cover),

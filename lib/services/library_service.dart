@@ -26,6 +26,44 @@ class LibraryService extends ChangeNotifier {
     return sorted.where((s) => (_playCounts[s.id] ?? 0) > 0 && !_ignoredIds.contains(s.id)).toList();
   }
 
+  Future<Directory> _getCoverDir() async {
+    final dir = await _getDataDir();
+    final coverDir = Directory('${dir.path}/covers');
+    if (!await coverDir.exists()) {
+      await coverDir.create(recursive: true);
+    }
+    return coverDir;
+  }
+
+  Future<String?> saveSongCover(String songId, String sourcePath) async {
+    try {
+      final coverDir = await _getCoverDir();
+      final dest = '${coverDir.path}/$songId.jpg';
+      await File(sourcePath).copy(dest);
+      final idx = _allSongs.indexWhere((s) => s.id == songId);
+      if (idx >= 0) {
+        _allSongs[idx] = _allSongs[idx].copyWith(localCoverPath: dest);
+        notifyListeners();
+      }
+      return dest;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> removeSongCover(String songId) async {
+    try {
+      final coverDir = await _getCoverDir();
+      final file = File('${coverDir.path}/$songId.jpg');
+      if (await file.exists()) await file.delete();
+      final idx = _allSongs.indexWhere((s) => s.id == songId);
+      if (idx >= 0) {
+        _allSongs[idx] = _allSongs[idx].copyWith(localCoverPath: null);
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
   void setSongs(List<Song> songs) {
     _allSongs = songs;
     _applyMetadataOverrides();

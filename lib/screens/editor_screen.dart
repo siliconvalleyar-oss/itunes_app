@@ -56,15 +56,10 @@ class _EditorScreenState extends State<EditorScreen> {
     if (_song == null) return;
     try {
       await _metaService.saveMetadata(
-        _song!.filePath,
-        SongMetadata(
-          title: _titleCtrl.text,
-          artist: _artistCtrl.text,
-          album: _albumCtrl.text,
-          year: int.tryParse(_yearCtrl.text),
-          genre: _genreCtrl.text,
-          track: int.tryParse(_trackCtrl.text),
-        ),
+        _song!,
+        title: _titleCtrl.text,
+        artist: _artistCtrl.text,
+        album: _albumCtrl.text,
       );
       if (mounted) {
         setState(() => _hasChanges = false);

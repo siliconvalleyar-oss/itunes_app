@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'dart:typed_data';
+import '../models/song.dart';
 
 class MetadataService extends ChangeNotifier {
+  static const _channel = MethodChannel('com.mimocode.itunes_app/metadata');
+
   Future<SongMetadata> readMetadata(String filePath) async {
-    // Placeholder - integrar con paquete de metadatos real
-    // Por ejemplo: audio_metadata_extract o tag
     return SongMetadata(
       title: _extractFileName(filePath),
       artist: 'Artista Desconocido',
@@ -11,21 +14,26 @@ class MetadataService extends ChangeNotifier {
     );
   }
 
-  Future<void> saveMetadata(String filePath, SongMetadata metadata) async {
-    // Placeholder - integrar con paquete de metadatos real
-    debugPrint('Guardando metadatos en: $filePath');
-    debugPrint('Título: ${metadata.title}');
-    debugPrint('Artista: ${metadata.artist}');
-    notifyListeners();
+  Future<bool> saveMetadata(Song song, {String? title, String? artist, String? album}) async {
+    try {
+      final result = await _channel.invokeMethod<bool>('writeMetadata', {
+        'contentUri': song.contentUri,
+        'title': title,
+        'artist': artist,
+        'album': album,
+      });
+      return result ?? false;
+    } catch (e) {
+      debugPrint('Error saving metadata: $e');
+      return false;
+    }
   }
 
   Future<Uint8List?> extractCoverArt(String filePath) async {
-    // Placeholder - extraer carátula del archivo
     return null;
   }
 
   Future<void> updateCoverArt(String filePath, Uint8List coverImage) async {
-    // Placeholder - actualizar carátula
     debugPrint('Actualizando carátula en: $filePath');
     notifyListeners();
   }

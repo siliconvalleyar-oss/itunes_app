@@ -11,6 +11,7 @@ class Song {
   final int? track;
   final String? genre;
   final Uint8List? coverArt;
+  final String? localCoverPath;
   final Duration duration;
   final int? fileSize;
 
@@ -25,6 +26,7 @@ class Song {
     this.track,
     this.genre,
     this.coverArt,
+    this.localCoverPath,
     this.duration = Duration.zero,
     this.fileSize,
   });
@@ -41,6 +43,7 @@ class Song {
     Uint8List? coverArt,
     Duration? duration,
     String? contentUri,
+    String? localCoverPath,
   }) {
     return Song(
       id: id,
@@ -53,6 +56,7 @@ class Song {
       track: track ?? this.track,
       genre: genre ?? this.genre,
       coverArt: coverArt ?? this.coverArt,
+      localCoverPath: localCoverPath ?? this.localCoverPath,
       duration: duration ?? this.duration,
       fileSize: fileSize,
     );
@@ -71,6 +75,7 @@ class Song {
       'genre': genre,
       'durationMs': duration.inMilliseconds,
       'fileSize': fileSize,
+      'localCoverPath': localCoverPath,
     };
   }
 
@@ -87,6 +92,7 @@ class Song {
       genre: map['genre'],
       duration: Duration(milliseconds: map['durationMs'] ?? 0),
       fileSize: map['fileSize'],
+      localCoverPath: map['localCoverPath'],
     );
   }
 }

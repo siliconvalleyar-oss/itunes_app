@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
 import '../services/audio_service.dart';
 import '../services/library_service.dart';
 import '../services/playlist_service.dart';
+import '../services/metadata_service.dart';
 import '../models/song.dart';
 import '../components/neu_card.dart';
 import '../components/neu_button.dart';
@@ -358,16 +361,25 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        final newTitle = titleCtrl.text.trim();
+                        final newArtist = artistCtrl.text.trim();
+                        final newAlbum = albumCtrl.text.trim();
                         widget.libraryService.updateSongMetadata(
                           song.id,
-                          title: titleCtrl.text.trim(),
-                          artist: artistCtrl.text.trim(),
-                          album: albumCtrl.text.trim(),
+                          title: newTitle,
+                          artist: newArtist,
+                          album: newAlbum,
                         );
                         final updated = widget.libraryService.allSongsUnfiltered
                             .firstWhere((s) => s.id == song.id);
                         widget.audioService.updateCurrentSong(updated);
+                        MetadataService().saveMetadata(
+                          song,
+                          title: newTitle.isNotEmpty ? newTitle : null,
+                          artist: newArtist.isNotEmpty ? newArtist : null,
+                          album: newAlbum.isNotEmpty ? newAlbum : null,
+                        );
                         Navigator.pop(ctx);
                       },
                       child: Container(
@@ -423,6 +435,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             : suggestions.where((s) => s.toLowerCase().contains(query)).take(6).toList();
         return Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               decoration: BoxDecoration(
@@ -444,41 +457,47 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
             if (filtered.isNotEmpty)
               Container(
-                margin: EdgeInsets.only(top: 4),
+                margin: EdgeInsets.only(top: 6),
+                constraints: BoxConstraints(maxHeight: 160),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: Neumorphic.subtle,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(filtered.length, (i) {
-                    return GestureDetector(
-                      onTap: () {
-                        ctrl.text = filtered[i];
-                        ctrl.selection = TextSelection.fromPosition(
-                          TextPosition(offset: ctrl.text.length),
-                        );
-                        setInnerState(() {});
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          border: i < filtered.length - 1
-                              ? Border(bottom: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.15)))
-                              : null,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: filtered.length,
+                    itemBuilder: (ctx, i) {
+                      return GestureDetector(
+                        onTap: () {
+                          ctrl.text = filtered[i];
+                          ctrl.selection = TextSelection.fromPosition(
+                            TextPosition(offset: ctrl.text.length),
+                          );
+                          setInnerState(() {});
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            border: i < filtered.length - 1
+                                ? Border(bottom: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.15)))
+                                : null,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.lightbulb_outline, size: 14, color: AppColors.textDisabled),
+                              SizedBox(width: 10),
+                              Text(filtered[i],
+                                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.lightbulb_outline, size: 14, color: AppColors.textDisabled),
-                            SizedBox(width: 8),
-                            Text(filtered[i],
-                                style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
+                      );
+                    },
+                  ),
                 ),
               ),
           ],
@@ -553,24 +572,139 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   Widget _buildAlbumArt(song) {
-    return Center(
-      child: NeuCard(
-        padding: EdgeInsets.all(20),
-        borderRadius: 28,
-        child: Container(
-          width: 260,
-          height: 260,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: Neumorphic.inset,
+    Widget imageWidget;
+    if (song?.localCoverPath != null) {
+      imageWidget = ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Image.file(File(song!.localCoverPath!), fit: BoxFit.cover),
+      );
+    } else if (song?.coverArt != null) {
+      imageWidget = ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Image.memory(song!.coverArt!, fit: BoxFit.cover),
+      );
+    } else {
+      imageWidget = Icon(Icons.music_note, color: AppColors.textDisabled, size: 64);
+    }
+
+    return GestureDetector(
+      onTap: () => _showCoverPicker(song),
+      child: Center(
+        child: NeuCard(
+          padding: EdgeInsets.all(20),
+          borderRadius: 28,
+          child: Container(
+            width: 260,
+            height: 260,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: Neumorphic.inset,
+            ),
+            child: Stack(
+              children: [
+                imageWidget,
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.background.withValues(alpha: 0.8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.camera_alt_outlined,
+                        size: 14, color: AppColors.textSecondary),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: song?.coverArt != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.memory(song!.coverArt!, fit: BoxFit.cover),
-                )
-              : Icon(Icons.music_note, color: AppColors.textDisabled, size: 64),
+        ),
+      ),
+    );
+  }
+
+  void _showCoverPicker(song) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Imagen de portada',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            SizedBox(height: 24),
+            GestureDetector(
+              onTap: () async {
+                Navigator.pop(ctx);
+                final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+                if (picked != null && song != null) {
+                  await widget.libraryService.saveSongCover(song.id, picked.path);
+                  if (mounted) setState(() {});
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.photo_library_outlined, color: AppColors.textSecondary, size: 20),
+                    SizedBox(width: 12),
+                    Text('Seleccionar de galería',
+                        style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
+                  ],
+                ),
+              ),
+            ),
+            if (song?.localCoverPath != null) ...[
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await widget.libraryService.removeSongCover(song.id);
+                  if (mounted) setState(() {});
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                      SizedBox(width: 12),
+                      Text('Quitar imagen',
+                          style: TextStyle(fontSize: 15, color: AppColors.error)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => Navigator.pop(ctx),
+              child: Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
