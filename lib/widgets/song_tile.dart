@@ -11,6 +11,9 @@ class SongTile extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteToggle;
   final VoidCallback? onHide;
+  final bool selectionMode;
+  final bool isSelected;
+  final ValueChanged<bool>? onSelect;
 
   const SongTile({
     super.key,
@@ -20,6 +23,9 @@ class SongTile extends StatelessWidget {
     this.onTap,
     this.onFavoriteToggle,
     this.onHide,
+    this.selectionMode = false,
+    this.isSelected = false,
+    this.onSelect,
   });
 
   @override
@@ -30,7 +36,7 @@ class SongTile extends StatelessWidget {
         final isPlaying = audioService.currentSong?.id == song.id;
         return GestureDetector(
           onLongPress: () {
-            if (onHide != null) {
+            if (onHide != null && !selectionMode) {
               showDialog(
                 context: context,
                 builder: (ctx) => Dialog(
@@ -100,9 +106,18 @@ class SongTile extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
             borderRadius: 18,
-            onTap: onTap,
+            onTap: selectionMode ? () => onSelect?.call(!isSelected) : onTap,
             child: Row(
               children: [
+                if (selectionMode)
+                  Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Icon(
+                      isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: isSelected ? AppColors.accent : AppColors.textDisabled,
+                      size: 22,
+                    ),
+                  ),
                 Container(
                   width: 48,
                   height: 48,
@@ -140,19 +155,15 @@ class SongTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (onFavoriteToggle != null)
+                if (onFavoriteToggle != null && !selectionMode)
                   GestureDetector(
                     onTap: onFavoriteToggle,
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       margin: const EdgeInsets.only(left: 4),
-                      decoration: BoxDecoration(
-                        color: isFavorite ? AppColors.error.withValues(alpha: 0.1) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                       child: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? AppColors.error : AppColors.textDisabled,
+                        color: isFavorite ? AppColors.textSecondary : AppColors.textDisabled,
                         size: 22,
                       ),
                     ),

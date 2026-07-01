@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/playlist_service.dart';
 import '../services/audio_service.dart';
+import '../services/library_service.dart';
 import '../components/neu_card.dart';
 import '../components/neu_button.dart';
+import '../widgets/song_tile.dart';
+import 'player_screen.dart';
 
 class PlaylistsScreen extends StatefulWidget {
   final PlaylistService playlistService;
   final AudioService audioService;
+  final LibraryService libraryService;
 
   PlaylistsScreen({
     super.key,
     required this.playlistService,
     required this.audioService,
+    required this.libraryService,
   });
 
   @override
@@ -26,6 +31,31 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  void _openPlaylist(Playlist pl) {
+    if (pl.songs.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Esta playlist está vacía'),
+          backgroundColor: AppColors.textDisabled,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _PlaylistDetailScreen(
+          playlist: pl,
+          audioService: widget.audioService,
+          libraryService: widget.libraryService,
+          playlistService: widget.playlistService,
+        ),
+      ),
+    );
   }
 
   @override
@@ -72,49 +102,58 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
                     itemCount: playlists.length,
                     itemBuilder: (context, index) {
                       final pl = playlists[index];
-                      return NeuCard(
-                        margin: EdgeInsets.only(bottom: 16),
-                        padding: EdgeInsets.all(16),
-                        borderRadius: 20,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: Neumorphic.inset,
+                      return GestureDetector(
+                        onTap: () => _openPlaylist(pl),
+                        child: NeuCard(
+                          margin: EdgeInsets.only(bottom: 16),
+                          padding: EdgeInsets.all(16),
+                          borderRadius: 20,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: Neumorphic.inset,
+                                ),
+                                child: Icon(Icons.music_note, color: AppColors.accent, size: 24),
                               ),
-                              child: Icon(Icons.music_note, color: AppColors.accent, size: 24),
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    pl.name,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      pl.name,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textPrimary,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '${pl.songs.length} canciones',
-                                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                                  ),
-                                ],
+                                    SizedBox(height: 4),
+                                    Text(
+                                      '${pl.songs.length} canciones',
+                                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            NeuButton(
-                              onPressed: () => _showDeleteDialog(pl.id),
-                              size: 32,
-                              child: Icon(Icons.delete_outline, color: AppColors.error, size: 16),
-                            ),
-                          ],
+                              NeuButton(
+                                onPressed: () => _showRenameDialog(pl),
+                                size: 32,
+                                child: Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 14),
+                              ),
+                              SizedBox(width: 8),
+                              NeuButton(
+                                onPressed: () => _showDeleteDialog(pl.id),
+                                size: 32,
+                                child: Icon(Icons.delete_outline, color: AppColors.error, size: 16),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -239,6 +278,93 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
     );
   }
 
+  void _showRenameDialog(Playlist pl) {
+    final ctrl = TextEditingController(text: pl.name);
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Renombrar',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              ),
+              SizedBox(height: 20),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: Neumorphic.inset,
+                ),
+                child: TextField(
+                  controller: ctrl,
+                  autofocus: true,
+                  style: TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Nombre de la playlist',
+                    hintStyle: TextStyle(color: AppColors.textDisabled),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: Neumorphic.subtle,
+                        ),
+                        child: Center(
+                          child: Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        final name = ctrl.text.trim();
+                        if (name.isNotEmpty) {
+                          widget.playlistService.renamePlaylist(pl.id, name);
+                          Navigator.pop(ctx);
+                        }
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: Neumorphic.subtle,
+                        ),
+                        child: Center(
+                          child: Text('Guardar',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showDeleteDialog(String id) {
     showDialog(
       context: context,
@@ -298,6 +424,126 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PlaylistDetailScreen extends StatefulWidget {
+  final Playlist playlist;
+  final AudioService audioService;
+  final LibraryService libraryService;
+  final PlaylistService playlistService;
+
+  _PlaylistDetailScreen({
+    super.key,
+    required this.playlist,
+    required this.audioService,
+    required this.libraryService,
+    required this.playlistService,
+  });
+
+  @override
+  State<_PlaylistDetailScreen> createState() => _PlaylistDetailScreenState();
+}
+
+class _PlaylistDetailScreenState extends State<_PlaylistDetailScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            SizedBox(height: 16),
+            Expanded(
+              child: widget.playlist.songs.isEmpty
+                  ? Center(
+                      child: Text('Playlist vacía',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: widget.playlist.songs.length,
+                      itemBuilder: (context, index) {
+                        final song = widget.playlist.songs[index];
+                        return SongTile(
+                          song: song,
+                          audioService: widget.audioService,
+                          isFavorite: widget.libraryService.isFavorite(song.id),
+                          onFavoriteToggle: () => widget.libraryService.toggleFavorite(song),
+                          onTap: () {
+                            widget.libraryService.recordPlay(song);
+                            widget.audioService.setPlaylist(widget.playlist.songs);
+                            widget.audioService.play(song);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PlayerScreen(
+                                  audioService: widget.audioService,
+                                  libraryService: widget.libraryService,
+                                  playlistService: widget.playlistService,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              NeuButton(
+                onPressed: () => Navigator.pop(context),
+                size: 40,
+                child: Icon(Icons.arrow_back_ios_new, color: AppColors.textSecondary, size: 16),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  widget.playlist.name,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                ),
+              ),
+              if (widget.playlist.songs.isNotEmpty)
+                NeuButton(
+                  onPressed: () {
+                    widget.audioService.setPlaylist(widget.playlist.songs);
+                    widget.audioService.play(widget.playlist.songs.first);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PlayerScreen(
+                          audioService: widget.audioService,
+                          libraryService: widget.libraryService,
+                          playlistService: widget.playlistService,
+                        ),
+                      ),
+                    );
+                  },
+                  size: 40,
+                  child: Icon(Icons.play_arrow, color: AppColors.accent, size: 20),
+                ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text('${widget.playlist.songs.length} canciones',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          SizedBox(height: 8),
+        ],
       ),
     );
   }

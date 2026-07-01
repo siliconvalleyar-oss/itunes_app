@@ -69,6 +69,13 @@ class PlaylistService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void renamePlaylist(String id, String newName) {
+    final pl = _playlists.firstWhere((p) => p.id == id);
+    pl.name = newName;
+    _savePlaylists();
+    notifyListeners();
+  }
+
   Future<void> _savePlaylists() async {
     try {
       final dir = await _getDataDir();

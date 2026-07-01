@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/audio_service.dart';
+import '../services/library_service.dart';
 import '../services/playlist_service.dart';
 import '../models/song.dart';
 import '../components/neu_card.dart';
@@ -10,9 +11,15 @@ import '../widgets/player_controls.dart';
 
 class PlayerScreen extends StatefulWidget {
   final AudioService audioService;
+  final LibraryService libraryService;
   final PlaylistService playlistService;
 
-  PlayerScreen({super.key, required this.audioService, required this.playlistService});
+  PlayerScreen({
+    super.key,
+    required this.audioService,
+    required this.libraryService,
+    required this.playlistService,
+  });
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -63,6 +70,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
     final song = widget.audioService.currentSong;
     if (song == null) return;
 
+    final nameCtrl = TextEditingController();
+
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
@@ -80,18 +89,38 @@ class _PlayerScreenState extends State<PlayerScreen> {
               Text(song.title,
                   style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
               SizedBox(height: 16),
+              // Create new playlist option
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showCreatePlaylistDialog(song);
+                },
+                child: Container(
+                  margin: EdgeInsets.only(bottom: 12),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_circle, color: AppColors.accent, size: 20),
+                      SizedBox(width: 12),
+                      Text('Crear nueva lista',
+                          style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
+              ),
               ListenableBuilder(
                 listenable: widget.playlistService,
                 builder: (context, _) {
                   final playlists = widget.playlistService.playlists;
                   if (playlists.isEmpty) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Center(
-                        child: Text('No hay playlists. Crea una primero.',
-                            style: TextStyle(color: AppColors.textDisabled)),
-                      ),
-                    );
+                    return SizedBox.shrink();
                   }
                   return ConstrainedBox(
                     constraints: BoxConstraints(maxHeight: 250),
@@ -162,6 +191,197 @@ class _PlayerScreenState extends State<PlayerScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showCreatePlaylistDialog(Song song) {
+    final nameCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx2) => Dialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Nueva Playlist',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              SizedBox(height: 20),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: Neumorphic.inset,
+                ),
+                child: TextField(
+                  controller: nameCtrl,
+                  autofocus: true,
+                  style: TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Nombre de la playlist',
+                    hintStyle: TextStyle(color: AppColors.textDisabled),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx2),
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: Neumorphic.subtle,
+                        ),
+                        child: Center(
+                          child: Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        final name = nameCtrl.text.trim();
+                        if (name.isNotEmpty) {
+                          widget.playlistService.addPlaylist(name);
+                          final p = widget.playlistService.playlists.last;
+                          widget.playlistService.addSongToPlaylist(p.id, song);
+                          Navigator.pop(ctx2);
+                        }
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: Neumorphic.subtle,
+                        ),
+                        child: Center(
+                          child: Text('Crear y agregar',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditMetadata() {
+    final song = widget.audioService.currentSong;
+    if (song == null) return;
+    final titleCtrl = TextEditingController(text: song.title);
+    final artistCtrl = TextEditingController(text: song.artist);
+    final albumCtrl = TextEditingController(text: song.album);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Editar metadatos',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              SizedBox(height: 16),
+              Text(song.title,
+                  style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+              SizedBox(height: 20),
+              _metaField('Título', titleCtrl),
+              SizedBox(height: 12),
+              _metaField('Artista', artistCtrl),
+              SizedBox(height: 12),
+              _metaField('Álbum', albumCtrl),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: Neumorphic.subtle,
+                        ),
+                        child: Center(
+                          child: Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        widget.libraryService.updateSongMetadata(
+                          song.id,
+                          title: titleCtrl.text.trim(),
+                          artist: artistCtrl.text.trim(),
+                          album: albumCtrl.text.trim(),
+                        );
+                        Navigator.pop(ctx);
+                        if (mounted) setState(() {});
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: Neumorphic.subtle,
+                        ),
+                        child: Center(
+                          child: Text('Guardar',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _metaField(String label, TextEditingController ctrl) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: Neumorphic.inset,
+      ),
+      child: TextField(
+        controller: ctrl,
+        style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: AppColors.textDisabled, fontSize: 12),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
       ),
     );
@@ -315,6 +535,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   Widget _buildBottomActions() {
+    final song = widget.audioService.currentSong;
+    final isFav = song != null && widget.libraryService.isFavorite(song.id);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 48),
       child: Row(
@@ -326,14 +548,28 @@ class _PlayerScreenState extends State<PlayerScreen> {
             child: Icon(Icons.share_outlined, color: AppColors.textSecondary, size: 18),
           ),
           NeuButton(
-            onPressed: () {},
+            onPressed: () {
+              if (song != null) {
+                widget.libraryService.toggleFavorite(song);
+                setState(() {});
+              }
+            },
             size: 40,
-            child: Icon(Icons.favorite_border, color: AppColors.textSecondary, size: 18),
+            child: Icon(
+              isFav ? Icons.favorite : Icons.favorite_border,
+              color: isFav ? AppColors.textSecondary : AppColors.textDisabled,
+              size: 18,
+            ),
           ),
           NeuButton(
             onPressed: _showAddToPlaylist,
             size: 40,
             child: Icon(Icons.queue_music_outlined, color: AppColors.textSecondary, size: 18),
+          ),
+          NeuButton(
+            onPressed: _showEditMetadata,
+            size: 40,
+            child: Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 18),
           ),
         ],
       ),
@@ -413,48 +649,74 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
             SizedBox(height: 16),
             SizedBox(
-              height: 80,
+              height: 140,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: List.generate(_bandGains.length, (i) {
-                  return Column(
-                    children: [
-                      Expanded(
-                        child: RotatedBox(
-                          quarterTurns: -1,
-                          child: SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              trackHeight: 3,
-                              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
-                              activeTrackColor: _bandGains[i] >= 0
-                                  ? AppColors.accent
-                                  : AppColors.accentAlt,
-                              inactiveTrackColor: AppColors.surface,
-                              thumbColor: AppColors.background,
-                            ),
-                            child: Slider(
-                              value: _bandGains[i],
-                              min: -12,
-                              max: 12,
-                              divisions: 24,
-                              onChanged: (v) {
-                                setState(() => _bandGains[i] = v);
-                                _setBandGain(i, v);
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                      Text(_freqLabels[i],
-                          style: TextStyle(fontSize: 9, color: AppColors.textDisabled)),
-                    ],
-                  );
+                  return _buildVerticalBand(i);
                 }),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildVerticalBand(int i) {
+    final gain = _bandGains[i];
+    final barHeight = 120.0;
+    final fillPercent = (gain + 12) / 24;
+    final fillHeight = barHeight * fillPercent;
+    final color = gain >= 0 ? AppColors.accent : AppColors.accentAlt;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('${gain.toStringAsFixed(0)}',
+            style: TextStyle(fontSize: 9, color: AppColors.textDisabled)),
+        SizedBox(height: 4),
+        GestureDetector(
+          onVerticalDragUpdate: (details) {
+            final newVal = (_bandGains[i] - details.delta.dy / barHeight * 24)
+                .clamp(-12.0, 12.0);
+            setState(() => _bandGains[i] = newVal);
+            _setBandGain(i, newVal);
+          },
+          child: Container(
+            width: 28,
+            height: barHeight,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: Neumorphic.inset,
+            ),
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 80),
+                      width: 28,
+                      height: fillHeight.clamp(0, barHeight),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(6)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(_freqLabels[i],
+            style: TextStyle(fontSize: 9, color: AppColors.textDisabled)),
+      ],
     );
   }
 

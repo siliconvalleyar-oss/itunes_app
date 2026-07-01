@@ -10,6 +10,7 @@ class LibraryService extends ChangeNotifier {
   List<Song> _recentlyPlayed = [];
   Map<String, int> _playCounts = {};
   Set<String> _ignoredIds = {};
+  Map<String, Map<String, dynamic>> _metadataOverrides = {};
 
   List<Song> get allSongs => _allSongs.where((s) => !_ignoredIds.contains(s.id)).toList();
   List<Song> get allSongsUnfiltered => _allSongs;
@@ -27,7 +28,23 @@ class LibraryService extends ChangeNotifier {
 
   void setSongs(List<Song> songs) {
     _allSongs = songs;
+    _applyMetadataOverrides();
     notifyListeners();
+  }
+
+  void _applyMetadataOverrides() {
+    for (final entry in _metadataOverrides.entries) {
+      final sid = entry.key;
+      final overrides = entry.value;
+      final idx = _allSongs.indexWhere((s) => s.id == sid);
+      if (idx >= 0) {
+        _allSongs[idx] = _allSongs[idx].copyWith(
+          title: overrides['title'] as String?,
+          artist: overrides['artist'] as String?,
+          album: overrides['album'] as String?,
+        );
+      }
+    }
   }
 
   void toggleFavorite(Song song) {
@@ -104,6 +121,19 @@ class LibraryService extends ChangeNotifier {
     } catch (_) {}
   }
 
+  void updateSongMetadata(String songId, {String? title, String? artist, String? album}) {
+    final idx = _allSongs.indexWhere((s) => s.id == songId);
+    if (idx < 0) return;
+    final overrides = <String, dynamic>{};
+    if (title != null) overrides['title'] = title;
+    if (artist != null) overrides['artist'] = artist;
+    if (album != null) overrides['album'] = album;
+    _metadataOverrides[songId] = overrides;
+    _allSongs[idx] = _allSongs[idx].copyWith(title: title, artist: artist, album: album);
+    _saveMetadataOverrides();
+    notifyListeners();
+  }
+
   Future<void> loadSavedData() async {
     try {
       final dir = await _getDataDir();
@@ -128,8 +158,29 @@ class LibraryService extends ChangeNotifier {
         final data = jsonDecode(await ignoredFile.readAsString()) as List;
         _ignoredIds = data.map((e) => e.toString()).toSet();
       }
+
+      await _loadMetadataOverrides();
     } catch (_) {}
     notifyListeners();
+  }
+
+  Future<void> _saveMetadataOverrides() async {
+    try {
+      final dir = await _getDataDir();
+      final file = File('${dir.path}/metadata_overrides.json');
+      await file.writeAsString(jsonEncode(_metadataOverrides));
+    } catch (_) {}
+  }
+
+  Future<void> _loadMetadataOverrides() async {
+    try {
+      final dir = await _getDataDir();
+      final file = File('${dir.path}/metadata_overrides.json');
+      if (await file.exists()) {
+        final data = jsonDecode(await file.readAsString()) as Map;
+        _metadataOverrides = data.map((k, v) => MapEntry(k, Map<String, dynamic>.from(v)));
+      }
+    } catch (_) {}
   }
 
   Future<Directory> _getDataDir() async {

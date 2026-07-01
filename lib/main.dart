@@ -111,7 +111,7 @@ class _AppShellState extends State<AppShell> {
               children: [
                 HomeScreen(audioService: _audioService, libraryService: _libraryService, playlistService: _playlistService),
                 LibraryScreen(audioService: _audioService, libraryService: _libraryService, playlistService: _playlistService),
-                PlaylistsScreen(playlistService: _playlistService, audioService: _audioService),
+                PlaylistsScreen(playlistService: _playlistService, audioService: _audioService, libraryService: _libraryService),
                 EditorScreen(audioService: _audioService),
                 SettingsScreen(themeProvider: _themeProvider),
               ],
@@ -122,7 +122,7 @@ class _AppShellState extends State<AppShell> {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => PlayerScreen(audioService: _audioService, playlistService: _playlistService),
+                builder: (_) => PlayerScreen(audioService: _audioService, libraryService: _libraryService, playlistService: _playlistService),
               ),
             ),
           ),

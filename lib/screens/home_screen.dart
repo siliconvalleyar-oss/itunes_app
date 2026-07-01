@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => PlayerScreen(audioService: widget.audioService, playlistService: widget.playlistService),
+                builder: (_) => PlayerScreen(audioService: widget.audioService, libraryService: widget.libraryService, playlistService: widget.playlistService),
           ),
         ),
       ),
