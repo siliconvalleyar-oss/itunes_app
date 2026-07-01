@@ -291,17 +291,40 @@ class _PlayerScreenState extends State<PlayerScreen> {
     final artistCtrl = TextEditingController(text: song.artist);
     final albumCtrl = TextEditingController(text: song.album);
 
-    showDialog(
+    final artists = widget.libraryService.allSongsUnfiltered
+        .map((s) => s.artist)
+        .where((a) => a.isNotEmpty)
+        .toSet()
+        .toList()..sort();
+    final albums = widget.libraryService.allSongsUnfiltered
+        .map((s) => s.album)
+        .where((a) => a.isNotEmpty)
+        .toSet()
+        .toList()..sort();
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: AppColors.background,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: EdgeInsets.all(24),
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textDisabled,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
               Text('Editar metadatos',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
               SizedBox(height: 16),
@@ -310,9 +333,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
               SizedBox(height: 20),
               _metaField('Título', titleCtrl),
               SizedBox(height: 12),
-              _metaField('Artista', artistCtrl),
+              _metaFieldWithSuggestions('Artista', artistCtrl, artists),
               SizedBox(height: 12),
-              _metaField('Álbum', albumCtrl),
+              _metaFieldWithSuggestions('Álbum', albumCtrl, albums),
               SizedBox(height: 20),
               Row(
                 children: [
@@ -346,7 +369,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             .firstWhere((s) => s.id == song.id);
                         widget.audioService.updateCurrentSong(updated);
                         Navigator.pop(ctx);
-                        if (mounted) setState(() {});
                       },
                       child: Container(
                         height: 48,
@@ -364,10 +386,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                 ],
               ),
+              SizedBox(height: 8),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -388,6 +411,79 @@ class _PlayerScreenState extends State<PlayerScreen> {
           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
       ),
+    );
+  }
+
+  Widget _metaFieldWithSuggestions(String label, TextEditingController ctrl, List<String> suggestions) {
+    return StatefulBuilder(
+      builder: (context, setInnerState) {
+        final query = ctrl.text.toLowerCase();
+        final filtered = query.isEmpty
+            ? <String>[]
+            : suggestions.where((s) => s.toLowerCase().contains(query)).take(6).toList();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: Neumorphic.inset,
+              ),
+              child: TextField(
+                controller: ctrl,
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                decoration: InputDecoration(
+                  labelText: label,
+                  labelStyle: TextStyle(color: AppColors.textDisabled, fontSize: 12),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                onChanged: (_) => setInnerState(() {}),
+              ),
+            ),
+            if (filtered.isNotEmpty)
+              Container(
+                margin: EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: Neumorphic.subtle,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(filtered.length, (i) {
+                    return GestureDetector(
+                      onTap: () {
+                        ctrl.text = filtered[i];
+                        ctrl.selection = TextSelection.fromPosition(
+                          TextPosition(offset: ctrl.text.length),
+                        );
+                        setInnerState(() {});
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          border: i < filtered.length - 1
+                              ? Border(bottom: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.15)))
+                              : null,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.lightbulb_outline, size: 14, color: AppColors.textDisabled),
+                            SizedBox(width: 8),
+                            Text(filtered[i],
+                                style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
