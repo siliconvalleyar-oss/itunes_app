@@ -297,64 +297,67 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return ListenableBuilder(
       listenable: widget.audioService,
       builder: (context, _) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            NeuButton(
-              onPressed: widget.audioService.toggleShuffle,
-              size: 48,
-              isActive: widget.audioService.isShuffled,
-              child: Icon(
-                Icons.shuffle,
-                color: widget.audioService.isShuffled
-                    ? AppColors.accent
-                    : AppColors.textSecondary,
-                size: 20,
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              NeuButton(
+                onPressed: widget.audioService.toggleShuffle,
+                size: 48,
+                isActive: widget.audioService.isShuffled,
+                child: Icon(
+                  Icons.shuffle,
+                  color: widget.audioService.isShuffled
+                      ? AppColors.accent
+                      : AppColors.textSecondary,
+                  size: 20,
+                ),
               ),
-            ),
-            SizedBox(width: 20),
-            NeuButton(
-              onPressed: widget.audioService.previous,
-              size: 56,
-              child: Icon(Icons.skip_previous, color: AppColors.textPrimary, size: 28),
-            ),
-            SizedBox(width: 20),
-            NeuButton(
-              onPressed: () {
-                if (widget.audioService.isPlaying) {
-                  widget.audioService.pause();
-                } else {
-                  widget.audioService.resume();
-                }
-              },
-              size: 72,
-              isInset: widget.audioService.isPlaying,
-              child: Icon(
-                widget.audioService.isPlaying ? Icons.pause : Icons.play_arrow,
-                color: AppColors.accent,
-                size: 36,
+              SizedBox(width: 12),
+              NeuButton(
+                onPressed: widget.audioService.previous,
+                size: 52,
+                child: Icon(Icons.skip_previous, color: AppColors.textPrimary, size: 26),
               ),
-            ),
-            SizedBox(width: 20),
-            NeuButton(
-              onPressed: widget.audioService.next,
-              size: 56,
-              child: Icon(Icons.skip_next, color: AppColors.textPrimary, size: 28),
-            ),
-            SizedBox(width: 20),
-            NeuButton(
-              onPressed: widget.audioService.cycleLoopMode,
-              size: 48,
-              isActive: widget.audioService.loopMode != LoopMode.off,
-              child: Icon(
-                widget.audioService.loopMode == LoopMode.one ? Icons.repeat_one : Icons.repeat,
-                color: widget.audioService.loopMode != LoopMode.off
-                    ? AppColors.accent
-                    : AppColors.textSecondary,
-                size: 20,
+              SizedBox(width: 12),
+              NeuButton(
+                onPressed: () {
+                  if (widget.audioService.isPlaying) {
+                    widget.audioService.pause();
+                  } else {
+                    widget.audioService.resume();
+                  }
+                },
+                size: 64,
+                isInset: widget.audioService.isPlaying,
+                child: Icon(
+                  widget.audioService.isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: AppColors.accent,
+                  size: 32,
+                ),
               ),
-            ),
-          ],
+              SizedBox(width: 12),
+              NeuButton(
+                onPressed: widget.audioService.next,
+                size: 52,
+                child: Icon(Icons.skip_next, color: AppColors.textPrimary, size: 26),
+              ),
+              SizedBox(width: 12),
+              NeuButton(
+                onPressed: widget.audioService.cycleLoopMode,
+                size: 48,
+                isActive: widget.audioService.loopMode != LoopMode.off,
+                child: Icon(
+                  widget.audioService.loopMode == LoopMode.one ? Icons.repeat_one : Icons.repeat,
+                  color: widget.audioService.loopMode != LoopMode.off
+                      ? AppColors.accent
+                      : AppColors.textSecondary,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
