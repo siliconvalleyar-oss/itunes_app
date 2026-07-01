@@ -25,7 +25,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final MusicScanner _scanner = MusicScanner();
   bool _permissionGranted = false;
   bool _permissionLoading = true;
@@ -33,17 +33,41 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _requestPermissionAndScan();
+    WidgetsBinding.instance.addObserver(this);
+    _checkPermissionAndScan();
   }
 
-  Future<void> _requestPermissionAndScan() async {
-    final granted = await PermissionService.requestAudioPermission();
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_permissionGranted) {
+      _checkPermissionAndScan();
+    }
+  }
+
+  Future<void> _checkPermissionAndScan() async {
+    final granted = await PermissionService.hasAudioPermission();
+    if (!mounted) return;
+    if (granted) {
+      setState(() {
+        _permissionGranted = true;
+        _permissionLoading = false;
+      });
+      _scanMusic();
+      return;
+    }
+    final requested = await PermissionService.requestAudioPermission();
     if (!mounted) return;
     setState(() {
-      _permissionGranted = granted;
+      _permissionGranted = requested;
       _permissionLoading = false;
     });
-    if (granted) {
+    if (requested) {
       _scanMusic();
     }
   }
