@@ -16,13 +16,23 @@ class MetadataService extends ChangeNotifier {
 
   Future<bool> saveMetadata(Song song, {String? title, String? artist, String? album}) async {
     try {
-      final result = await _channel.invokeMethod<bool>('writeMetadata', {
+      // Write to MediaStore database
+      await _channel.invokeMethod<bool>('writeMetadata', {
         'contentUri': song.contentUri,
         'title': title,
         'artist': artist,
         'album': album,
       });
-      return result ?? false;
+
+      // Write actual ID3 tags to the file
+      await _channel.invokeMethod<bool>('writeId3Tags', {
+        'filePath': song.filePath,
+        'title': title,
+        'artist': artist,
+        'album': album,
+      });
+
+      return true;
     } catch (e) {
       debugPrint('Error saving metadata: $e');
       return false;

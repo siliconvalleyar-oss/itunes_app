@@ -34,6 +34,10 @@ android {
     }
 }
 
+dependencies {
+    implementation("com.mpatric:mp3agic:0.9.1")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17

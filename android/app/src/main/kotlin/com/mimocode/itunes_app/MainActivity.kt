@@ -2,9 +2,13 @@ package com.mimocode.itunes_app
 
 import android.provider.MediaStore
 import android.database.Cursor
+import android.net.Uri
+import android.content.ContentValues
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import com.mpatric.mp3agic.*
+import java.io.File
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.mimocode.itunes_app/scanner"
@@ -23,32 +27,67 @@ class MainActivity : FlutterActivity() {
         }
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, META_CHANNEL).setMethodCallHandler { call, result ->
-            if (call.method == "writeMetadata") {
-                val args = call.arguments as Map<String, Any?>
-                val contentUriStr = args["contentUri"] as String?
-                val title = args["title"] as String?
-                val artist = args["artist"] as String?
-                val album = args["album"] as String?
+            when (call.method) {
+                "writeMetadata" -> {
+                    val args = call.arguments as Map<String, Any?>
+                    val contentUriStr = args["contentUri"] as String?
+                    val title = args["title"] as String?
+                    val artist = args["artist"] as String?
+                    val album = args["album"] as String?
 
-                if (contentUriStr == null) {
-                    result.error("INVALID_ARGS", "contentUri required", null)
-                    return@setMethodCallHandler
+                    if (contentUriStr == null) {
+                        result.error("INVALID_ARGS", "contentUri required", null)
+                        return@setMethodCallHandler
+                    }
+
+                    try {
+                        val uri = Uri.parse(contentUriStr)
+                        val values = ContentValues()
+                        if (title != null && title.isNotEmpty()) values.put(MediaStore.Audio.Media.TITLE, title)
+                        if (artist != null && artist.isNotEmpty()) values.put(MediaStore.Audio.Media.ARTIST, artist)
+                        if (album != null && album.isNotEmpty()) values.put(MediaStore.Audio.Media.ALBUM, album)
+                        val updated = contentResolver.update(uri, values, null, null)
+                        result.success(updated > 0)
+                    } catch (e: Exception) {
+                        result.error("WRITE_FAILED", e.message, null)
+                    }
                 }
+                "writeId3Tags" -> {
+                    val args = call.arguments as Map<String, Any?>
+                    val filePath = args["filePath"] as String?
+                    val title = args["title"] as String?
+                    val artist = args["artist"] as String?
+                    val album = args["album"] as String?
 
-                try {
-                    val uri = android.net.Uri.parse(contentUriStr)
-                    val values = android.content.ContentValues()
-                    if (title != null && title.isNotEmpty()) values.put(MediaStore.Audio.Media.TITLE, title)
-                    if (artist != null && artist.isNotEmpty()) values.put(MediaStore.Audio.Media.ARTIST, artist)
-                    if (album != null && album.isNotEmpty()) values.put(MediaStore.Audio.Media.ALBUM, album)
+                    if (filePath == null) {
+                        result.error("INVALID_ARGS", "filePath required", null)
+                        return@setMethodCallHandler
+                    }
 
-                    val updated = contentResolver.update(uri, values, null, null)
-                    result.success(updated > 0)
-                } catch (e: Exception) {
-                    result.error("WRITE_FAILED", e.message, null)
+                    try {
+                        val file = File(filePath)
+                        if (!file.exists()) {
+                            result.error("FILE_NOT_FOUND", "File not found: $filePath", null)
+                            return@setMethodCallHandler
+                        }
+
+                        val mp3 = Mp3File(filePath)
+                        var tag = mp3.id3v2Tag
+                        if (tag == null) {
+                            tag = ID3v24Tag()
+                            mp3.id3v2Tag = tag
+                        }
+                        if (title != null && title.isNotEmpty()) tag.title = title
+                        if (artist != null && artist.isNotEmpty()) tag.artist = artist
+                        if (album != null && album.isNotEmpty()) tag.album = album
+                        mp3.save(filePath)
+
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("ID3_WRITE_FAILED", e.message, null)
+                    }
                 }
-            } else {
-                result.notImplemented()
+                else -> result.notImplemented()
             }
         }
     }
