@@ -257,12 +257,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: song?.localCoverPath != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(24),
-                        child: Image.file(File(song!.localCoverPath!), fit: BoxFit.cover),
+                        child: Container(
+                          color: AppColors.surface,
+                          child: Center(
+                            child: Image.file(File(song!.localCoverPath!), fit: BoxFit.contain),
+                          ),
+                        ),
                       )
                     : song?.coverArt != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(24),
-                        child: Image.memory(song!.coverArt!, fit: BoxFit.cover),
+                        child: Container(
+                          color: AppColors.surface,
+                          child: Center(
+                            child: Image.memory(song!.coverArt!, fit: BoxFit.contain),
+                          ),
+                        ),
                       )
                     : Icon(
                         Icons.music_note,

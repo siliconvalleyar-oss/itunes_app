@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:crypto/crypto.dart';
 import '../models/song.dart';
 
 class LibraryService extends ChangeNotifier {
@@ -27,19 +28,28 @@ class LibraryService extends ChangeNotifier {
   }
 
   Future<Directory> _getCoverDir() async {
-    final dir = await _getDataDir();
-    final coverDir = Directory('${dir.path}/covers');
+    final dir = await getApplicationDocumentsDirectory();
+    final coverDir = Directory('${dir.path}/.itunes_app_image');
     if (!await coverDir.exists()) {
       await coverDir.create(recursive: true);
     }
     return coverDir;
   }
 
+  String _computeImageHash(String filePath) {
+    final bytes = File(filePath).readAsBytesSync();
+    return sha256.convert(bytes).toString();
+  }
+
   Future<String?> saveSongCover(String songId, String sourcePath) async {
     try {
       final coverDir = await _getCoverDir();
-      final dest = '${coverDir.path}/$songId.jpg';
-      await File(sourcePath).copy(dest);
+      final hash = _computeImageHash(sourcePath);
+      final dest = '${coverDir.path}/$hash.jpg';
+      final destFile = File(dest);
+      if (!await destFile.exists()) {
+        await File(sourcePath).copy(dest);
+      }
       final idx = _allSongs.indexWhere((s) => s.id == songId);
       if (idx >= 0) {
         _allSongs[idx] = _allSongs[idx].copyWith(localCoverPath: dest);
@@ -53,9 +63,6 @@ class LibraryService extends ChangeNotifier {
 
   Future<void> removeSongCover(String songId) async {
     try {
-      final coverDir = await _getCoverDir();
-      final file = File('${coverDir.path}/$songId.jpg');
-      if (await file.exists()) await file.delete();
       final idx = _allSongs.indexWhere((s) => s.id == songId);
       if (idx >= 0) {
         _allSongs[idx] = _allSongs[idx].copyWith(localCoverPath: null);

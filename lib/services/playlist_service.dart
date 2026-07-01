@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:crypto/crypto.dart';
 import '../models/song.dart';
 
 class Playlist {
@@ -101,15 +102,24 @@ class PlaylistService extends ChangeNotifier {
     notifyListeners();
   }
 
+  String _computeImageHash(String filePath) {
+    final bytes = File(filePath).readAsBytesSync();
+    return sha256.convert(bytes).toString();
+  }
+
   Future<String?> savePlaylistCover(String playlistId, String sourcePath) async {
     try {
-      final dir = await _getDataDir();
-      final coverDir = Directory('${dir.path}/covers');
+      final dir = await getApplicationDocumentsDirectory();
+      final coverDir = Directory('${dir.path}/.itunes_app_image');
       if (!await coverDir.exists()) {
         await coverDir.create(recursive: true);
       }
-      final dest = '${coverDir.path}/pl_$playlistId.jpg';
-      await File(sourcePath).copy(dest);
+      final hash = _computeImageHash(sourcePath);
+      final dest = '${coverDir.path}/$hash.jpg';
+      final destFile = File(dest);
+      if (!await destFile.exists()) {
+        await File(sourcePath).copy(dest);
+      }
       final pl = _playlists.firstWhere((p) => p.id == playlistId);
       pl.coverPath = dest;
       _savePlaylists();

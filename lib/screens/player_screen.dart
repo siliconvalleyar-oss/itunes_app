@@ -576,12 +576,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
     if (song?.localCoverPath != null) {
       imageWidget = ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: Image.file(File(song!.localCoverPath!), fit: BoxFit.cover),
+        child: Container(
+          color: AppColors.surface,
+          child: Center(
+            child: Image.file(File(song!.localCoverPath!), fit: BoxFit.contain),
+          ),
+        ),
       );
     } else if (song?.coverArt != null) {
       imageWidget = ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: Image.memory(song!.coverArt!, fit: BoxFit.cover),
+        child: Container(
+          color: AppColors.surface,
+          child: Center(
+            child: Image.memory(song!.coverArt!, fit: BoxFit.contain),
+          ),
+        ),
       );
     } else {
       imageWidget = Icon(Icons.music_note, color: AppColors.textDisabled, size: 64);

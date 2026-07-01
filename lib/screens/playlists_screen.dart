@@ -563,7 +563,7 @@ class _PlaylistDetailScreenState extends State<_PlaylistDetailScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(24),
                       child: widget.playlist.coverPath != null
-                          ? Image.file(File(widget.playlist.coverPath!), fit: BoxFit.cover, width: 180, height: 180)
+                          ? Image.file(File(widget.playlist.coverPath!), fit: BoxFit.contain, width: 180, height: 180)
                           : Center(child: Icon(Icons.music_note, color: AppColors.textDisabled, size: 48)),
                     ),
                     Positioned(
