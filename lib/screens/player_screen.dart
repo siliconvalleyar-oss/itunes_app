@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../theme/app_theme.dart';
 import '../services/audio_service.dart';
 import '../services/library_service.dart';
@@ -341,6 +342,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           artist: artistCtrl.text.trim(),
                           album: albumCtrl.text.trim(),
                         );
+                        final updated = widget.libraryService.allSongsUnfiltered
+                            .firstWhere((s) => s.id == song.id);
+                        widget.audioService.updateCurrentSong(updated);
                         Navigator.pop(ctx);
                         if (mounted) setState(() {});
                       },
@@ -543,7 +547,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           NeuButton(
-            onPressed: () {},
+            onPressed: () {
+              final s = widget.audioService.currentSong;
+              if (s != null) {
+                Share.share('${s.title} — ${s.artist}');
+              }
+            },
             size: 40,
             child: Icon(Icons.share_outlined, color: AppColors.textSecondary, size: 18),
           ),

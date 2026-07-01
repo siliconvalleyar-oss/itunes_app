@@ -160,6 +160,13 @@ class AudioService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateCurrentSong(Song updatedSong) {
+    if (_currentIndex >= 0 && _currentIndex < _playlist.length) {
+      _playlist[_currentIndex] = updatedSong;
+      notifyListeners();
+    }
+  }
+
   Future<void> setVolume(double volume) async {
     await _player.setVolume(volume);
     notifyListeners();
