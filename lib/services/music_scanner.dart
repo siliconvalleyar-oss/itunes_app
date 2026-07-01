@@ -1,11 +1,17 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../models/song.dart';
+import 'platform_scanner.dart';
 
 class MusicScanner {
-  static const List<String> _audioExtensions = ['.mp3'];
+  static const List<String> _audioExtensions = ['.mp3', '.flac', '.wav', '.aac', '.ogg', '.wma'];
 
   Future<List<Song>> scanDevice() async {
+    if (Platform.isAndroid) {
+      final songs = await PlatformScanner.scanAudioFiles();
+      if (songs.isNotEmpty) return songs;
+    }
+
     final songs = <Song>[];
     final directories = await _getScanDirectories();
 

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 class Song {
   final String id;
   final String filePath;
+  final String contentUri;
   final String title;
   final String artist;
   final String album;
@@ -16,6 +17,7 @@ class Song {
   Song({
     required this.id,
     required this.filePath,
+    this.contentUri = '',
     required this.title,
     this.artist = 'Desconocido',
     this.album = 'Sin álbum',
@@ -27,6 +29,8 @@ class Song {
     this.fileSize,
   });
 
+  String get playableUri => contentUri.isNotEmpty ? contentUri : filePath;
+
   Song copyWith({
     String? title,
     String? artist,
@@ -36,10 +40,12 @@ class Song {
     String? genre,
     Uint8List? coverArt,
     Duration? duration,
+    String? contentUri,
   }) {
     return Song(
       id: id,
       filePath: filePath,
+      contentUri: contentUri ?? this.contentUri,
       title: title ?? this.title,
       artist: artist ?? this.artist,
       album: album ?? this.album,
@@ -56,6 +62,7 @@ class Song {
     return {
       'id': id,
       'filePath': filePath,
+      'contentUri': contentUri,
       'title': title,
       'artist': artist,
       'album': album,
@@ -70,7 +77,8 @@ class Song {
   factory Song.fromMap(Map<String, dynamic> map) {
     return Song(
       id: map['id'].toString(),
-      filePath: map['filePath'],
+      filePath: map['filePath'] ?? '',
+      contentUri: map['contentUri'] ?? '',
       title: map['title'],
       artist: map['artist'] ?? 'Desconocido',
       album: map['album'] ?? 'Sin álbum',

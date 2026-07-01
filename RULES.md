@@ -8,5 +8,6 @@
 
 ## 2. Instalar en Móvil sin Borrar
 
-- Usar `flutter install -r` o `adb install -r` para **reemplazar** la app sin desinstalarla.
+- Usar `adb install -r build/app/outputs/flutter-apk/app-debug.apk` para **reemplazar** la app sin desinstalarla.
 - Esto conserva los permisos ya otorgados y evita tener que autorizar cada vez.
+- Compilar primero con `flutter build apk --debug`.

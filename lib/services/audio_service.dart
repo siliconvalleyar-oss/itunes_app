@@ -46,7 +46,9 @@ class AudioService extends ChangeNotifier {
       _playlist.add(song);
       _currentIndex = _playlist.length - 1;
     }
-    await _player.setFilePath(song.filePath);
+    await _player.setAudioSource(
+      AudioSource.uri(Uri.parse(song.playableUri)),
+    );
     await _player.play();
     notifyListeners();
   }
