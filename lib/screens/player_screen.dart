@@ -314,9 +314,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
       builder: (ctx) {
         return Padding(
           padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).viewPadding.bottom + 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Container(
@@ -400,6 +401,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               ),
               SizedBox(height: 8),
             ],
+          ),
           ),
         );
       },
@@ -748,30 +750,33 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Widget _buildProgress() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
         children: [
-          NeuSlider(
-            value: widget.audioService.duration.inMilliseconds > 0
-                ? widget.audioService.position.inMilliseconds /
-                    widget.audioService.duration.inMilliseconds
-                : 0,
-            onChanged: (v) {
-              final pos = Duration(
-                milliseconds: (v * widget.audioService.duration.inMilliseconds).round(),
-              );
-              widget.audioService.seek(pos);
-            },
+          SizedBox(
+            width: 40,
+            child: Text(_fmt(widget.audioService.position),
+                style: TextStyle(fontSize: 11, color: AppColors.textDisabled)),
           ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(_fmt(widget.audioService.position),
-                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled)),
-              Text(_fmt(widget.audioService.duration),
-                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled)),
-            ],
+          Expanded(
+            child: NeuSlider(
+              value: widget.audioService.duration.inMilliseconds > 0
+                  ? widget.audioService.position.inMilliseconds /
+                      widget.audioService.duration.inMilliseconds
+                  : 0,
+              onChanged: (v) {
+                final pos = Duration(
+                  milliseconds: (v * widget.audioService.duration.inMilliseconds).round(),
+                );
+                widget.audioService.seek(pos);
+              },
+            ),
+          ),
+          SizedBox(
+            width: 40,
+            child: Text(_fmt(widget.audioService.duration),
+                textAlign: TextAlign.end,
+                style: TextStyle(fontSize: 11, color: AppColors.textDisabled)),
           ),
         ],
       ),

@@ -389,35 +389,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return ListenableBuilder(
       listenable: widget.audioService,
       builder: (context, _) {
-        return Column(
-          children: [
-            NeuSlider(
-              value: widget.audioService.duration.inMilliseconds > 0
-                  ? widget.audioService.position.inMilliseconds /
-                      widget.audioService.duration.inMilliseconds
-                  : 0,
-              onChanged: (v) {
-                final pos = Duration(
-                  milliseconds: (v * widget.audioService.duration.inMilliseconds).round(),
-                );
-                widget.audioService.seek(pos);
-              },
-            ),
-            SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 36,
+                child: Text(
                   _fmt(widget.audioService.position),
-                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
+                  style: TextStyle(fontSize: 11, color: AppColors.textDisabled),
                 ),
-                Text(
+              ),
+              Expanded(
+                child: NeuSlider(
+                  value: widget.audioService.duration.inMilliseconds > 0
+                      ? widget.audioService.position.inMilliseconds /
+                          widget.audioService.duration.inMilliseconds
+                      : 0,
+                  onChanged: (v) {
+                    final pos = Duration(
+                      milliseconds: (v * widget.audioService.duration.inMilliseconds).round(),
+                    );
+                    widget.audioService.seek(pos);
+                  },
+                ),
+              ),
+              SizedBox(
+                width: 36,
+                child: Text(
                   _fmt(widget.audioService.duration),
-                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
+                  textAlign: TextAlign.end,
+                  style: TextStyle(fontSize: 11, color: AppColors.textDisabled),
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         );
       },
     );

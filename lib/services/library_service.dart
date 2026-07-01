@@ -7,7 +7,7 @@ import '../models/song.dart';
 
 class LibraryService extends ChangeNotifier {
   List<Song> _allSongs = [];
-  List<Song> _favorites = [];
+  Set<String> _favoriteIds = {};
   List<Song> _recentlyPlayed = [];
   Map<String, int> _playCounts = {};
   Set<String> _ignoredIds = {};
@@ -16,7 +16,7 @@ class LibraryService extends ChangeNotifier {
   List<Song> get allSongs => _allSongs.where((s) => !_ignoredIds.contains(s.id)).toList();
   List<Song> get allSongsUnfiltered => _allSongs;
   List<Song> get favorites =>
-      _favorites.where((s) => !_ignoredIds.contains(s.id)).toList();
+      _allSongs.where((s) => _favoriteIds.contains(s.id) && !_ignoredIds.contains(s.id)).toList();
   List<Song> get recentlyPlayed =>
       _recentlyPlayed.where((s) => !_ignoredIds.contains(s.id)).toList();
   Set<String> get ignoredIds => _ignoredIds;
@@ -90,21 +90,43 @@ class LibraryService extends ChangeNotifier {
         );
       }
     }
+    _normalizeMetadata();
+  }
+
+  void _normalizeMetadata() {
+    for (var i = 0; i < _allSongs.length; i++) {
+      final s = _allSongs[i];
+      String? clean(String? v) {
+        if (v == null) return null;
+        final trimmed = v.trim();
+        if (trimmed.isEmpty || trimmed.toLowerCase() == '<unknown>') return '';
+        return trimmed;
+      }
+      final title = clean(s.title);
+      final artist = clean(s.artist);
+      final album = clean(s.album);
+      if (title != s.title || artist != s.artist || album != s.album) {
+        _allSongs[i] = s.copyWith(
+          title: title,
+          artist: artist,
+          album: album,
+        );
+      }
+    }
   }
 
   void toggleFavorite(Song song) {
-    final index = _favorites.indexWhere((s) => s.id == song.id);
-    if (index >= 0) {
-      _favorites.removeAt(index);
+    if (_favoriteIds.contains(song.id)) {
+      _favoriteIds.remove(song.id);
     } else {
-      _favorites.add(song);
+      _favoriteIds.add(song.id);
     }
     _saveFavorites();
     notifyListeners();
   }
 
   bool isFavorite(String songId) {
-    return _favorites.any((s) => s.id == songId);
+    return _favoriteIds.contains(songId);
   }
 
   void toggleIgnored(Song song) {
@@ -142,8 +164,7 @@ class LibraryService extends ChangeNotifier {
     try {
       final dir = await _getDataDir();
       final file = File('${dir.path}/favorites.json');
-      final data = _favorites.map((s) => s.toMap()).toList();
-      await file.writeAsString(jsonEncode(data));
+      await file.writeAsString(jsonEncode(_favoriteIds.toList()));
     } catch (_) {}
   }
 
@@ -175,6 +196,7 @@ class LibraryService extends ChangeNotifier {
     if (album != null) overrides['album'] = album;
     _metadataOverrides[songId] = overrides;
     _allSongs[idx] = _allSongs[idx].copyWith(title: title, artist: artist, album: album);
+    _normalizeMetadata();
     _saveMetadataOverrides();
     notifyListeners();
   }
@@ -185,8 +207,10 @@ class LibraryService extends ChangeNotifier {
 
       final favFile = File('${dir.path}/favorites.json');
       if (await favFile.exists()) {
-        final data = jsonDecode(await favFile.readAsString()) as List;
-        _favorites = data.map((m) => Song.fromMap(m)).toList();
+        final data = jsonDecode(await favFile.readAsString());
+        if (data is List) {
+          _favoriteIds = data.map((e) => e.toString()).toSet();
+        }
       }
 
       final playFile = File('${dir.path}/play_data.json');
