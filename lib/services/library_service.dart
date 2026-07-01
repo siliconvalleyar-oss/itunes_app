@@ -12,6 +12,7 @@ class LibraryService extends ChangeNotifier {
   Map<String, int> _playCounts = {};
   Set<String> _ignoredIds = {};
   Map<String, Map<String, dynamic>> _metadataOverrides = {};
+  Map<String, String> _coverPaths = {};
 
   List<Song> get allSongs => _allSongs.where((s) => !_ignoredIds.contains(s.id)).toList();
   List<Song> get allSongsUnfiltered => _allSongs;
@@ -50,6 +51,8 @@ class LibraryService extends ChangeNotifier {
       if (!await destFile.exists()) {
         await File(sourcePath).copy(dest);
       }
+      _coverPaths[songId] = dest;
+      _saveCoverPaths();
       final idx = _allSongs.indexWhere((s) => s.id == songId);
       if (idx >= 0) {
         _allSongs[idx] = _allSongs[idx].copyWith(localCoverPath: dest);
@@ -63,6 +66,8 @@ class LibraryService extends ChangeNotifier {
 
   Future<void> removeSongCover(String songId) async {
     try {
+      _coverPaths.remove(songId);
+      _saveCoverPaths();
       final idx = _allSongs.indexWhere((s) => s.id == songId);
       if (idx >= 0) {
         _allSongs[idx] = _allSongs[idx].copyWith(localCoverPath: null);
@@ -74,6 +79,7 @@ class LibraryService extends ChangeNotifier {
   void setSongs(List<Song> songs) {
     _allSongs = songs;
     _applyMetadataOverrides();
+    _applyCoverPaths();
     notifyListeners();
   }
 
@@ -91,6 +97,17 @@ class LibraryService extends ChangeNotifier {
       }
     }
     _normalizeMetadata();
+  }
+
+  void _applyCoverPaths() {
+    for (final entry in _coverPaths.entries) {
+      final sid = entry.key;
+      final path = entry.value;
+      final idx = _allSongs.indexWhere((s) => s.id == sid);
+      if (idx >= 0) {
+        _allSongs[idx] = _allSongs[idx].copyWith(localCoverPath: path);
+      }
+    }
   }
 
   void _normalizeMetadata() {
@@ -229,6 +246,7 @@ class LibraryService extends ChangeNotifier {
       }
 
       await _loadMetadataOverrides();
+      await _loadCoverPaths();
     } catch (_) {}
     notifyListeners();
   }
@@ -248,6 +266,25 @@ class LibraryService extends ChangeNotifier {
       if (await file.exists()) {
         final data = jsonDecode(await file.readAsString()) as Map;
         _metadataOverrides = data.map((k, v) => MapEntry(k, Map<String, dynamic>.from(v)));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveCoverPaths() async {
+    try {
+      final dir = await _getDataDir();
+      final file = File('${dir.path}/cover_paths.json');
+      await file.writeAsString(jsonEncode(_coverPaths));
+    } catch (_) {}
+  }
+
+  Future<void> _loadCoverPaths() async {
+    try {
+      final dir = await _getDataDir();
+      final file = File('${dir.path}/cover_paths.json');
+      if (await file.exists()) {
+        final data = jsonDecode(await file.readAsString()) as Map;
+        _coverPaths = data.map((k, v) => MapEntry(k, v.toString()));
       }
     } catch (_) {}
   }

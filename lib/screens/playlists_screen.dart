@@ -615,7 +615,7 @@ class _PlaylistDetailScreenState extends State<_PlaylistDetailScreen> {
       backgroundColor: AppColors.background,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (ctx) => Padding(
-        padding: EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(ctx).viewPadding.bottom + 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
