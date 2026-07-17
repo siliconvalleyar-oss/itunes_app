@@ -10,7 +10,6 @@ import '../services/playlist_service.dart';
 import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 import '../components/neu_slider.dart';
-import '../components/mini_player.dart';
 import 'player_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -125,15 +124,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ],
                   ),
       ),
-      bottomNavigationBar: MiniPlayer(
-        audioService: widget.audioService,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-                builder: (_) => PlayerScreen(audioService: widget.audioService, libraryService: widget.libraryService, playlistService: widget.playlistService),
-          ),
-        ),
-      ),
+
     );
   }
 

@@ -517,22 +517,24 @@ class _PlayerScreenState extends State<PlayerScreen> {
           listenable: widget.audioService,
           builder: (context, _) {
             final song = widget.audioService.currentSong;
-            return Column(
-              children: [
-                _buildHeader(),
-                SizedBox(height: 16),
-                _buildAlbumArt(song),
-                SizedBox(height: 28),
-                _buildSongInfo(song),
-                SizedBox(height: 24),
-                _buildProgress(),
-                SizedBox(height: 24),
-                PlayerControls(audioService: widget.audioService),
-                Spacer(),
-                _buildBottomActions(),
-                if (_showEqualizer) _buildEqualizer(),
-                SizedBox(height: 20),
-              ],
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  SizedBox(height: 16),
+                  _buildAlbumArt(song),
+                  SizedBox(height: 28),
+                  _buildSongInfo(song),
+                  SizedBox(height: 24),
+                  _buildProgress(),
+                  SizedBox(height: 24),
+                  PlayerControls(audioService: widget.audioService),
+                  SizedBox(height: 24),
+                  _buildBottomActions(),
+                  if (_showEqualizer) _buildEqualizer(),
+                  SizedBox(height: 20),
+                ],
+              ),
             );
           },
         ),
@@ -605,32 +607,37 @@ class _PlayerScreenState extends State<PlayerScreen> {
         child: NeuCard(
           padding: EdgeInsets.all(20),
           borderRadius: 28,
-          child: Container(
-            width: 260,
-            height: 260,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: Neumorphic.inset,
-            ),
-            child: Stack(
-              children: [
-                imageWidget,
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.background.withValues(alpha: 0.8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.camera_alt_outlined,
-                        size: 14, color: AppColors.textSecondary),
-                  ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final size = constraints.maxWidth * 0.55;
+              return Container(
+                width: size.clamp(160, 280),
+                height: size.clamp(160, 280),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: Neumorphic.inset,
                 ),
-              ],
-            ),
+                child: Stack(
+                  children: [
+                    imageWidget,
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.background.withValues(alpha: 0.8),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.camera_alt_outlined,
+                            size: 14, color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),

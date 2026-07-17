@@ -8,6 +8,7 @@ import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 import '../widgets/song_tile.dart';
 import 'player_screen.dart';
+import 'group_songs_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
   final AudioService audioService;
@@ -43,6 +44,101 @@ class _LibraryScreenState extends State<LibraryScreen> {
       default:
         return widget.libraryService.allSongs;
     }
+  }
+
+  Map<String, List<Song>> get _groupedByArtist {
+    final map = <String, List<Song>>{};
+    for (final s in widget.libraryService.allSongs) {
+      final key = s.artist.isNotEmpty ? s.artist : 'Desconocido';
+      map.putIfAbsent(key, () => []).add(s);
+    }
+    return map;
+  }
+
+  Map<String, List<Song>> get _groupedByAlbum {
+    final map = <String, List<Song>>{};
+    for (final s in widget.libraryService.allSongs) {
+      final key = s.album.isNotEmpty ? s.album : 'Sin álbum';
+      map.putIfAbsent(key, () => []).add(s);
+    }
+    return map;
+  }
+
+  Widget _buildGroupView(Map<String, List<Song>> groups, IconData fallbackIcon) {
+    final sortedKeys = groups.keys.toList()..sort();
+    return ListView.builder(
+      padding: EdgeInsets.symmetric(horizontal: 24),
+      itemCount: sortedKeys.length,
+      itemBuilder: (context, i) {
+        final key = sortedKeys[i];
+        final songs = groups[key]!;
+        return Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GroupSongsScreen(
+                    groupName: key,
+                    songs: songs,
+                    audioService: widget.audioService,
+                    libraryService: widget.libraryService,
+                    playlistService: widget.playlistService,
+                  ),
+                ),
+              );
+            },
+            child: NeuCard(
+              padding: EdgeInsets.all(12),
+              borderRadius: 16,
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: Neumorphic.inset,
+                    ),
+                    child: Icon(
+                      fallbackIcon,
+                      color: AppColors.accent,
+                      size: 24,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          key,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          '${songs.length} ${songs.length == 1 ? 'canción' : 'canciones'}',
+                          style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: AppColors.textDisabled, size: 20),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _exitSelection() {
@@ -455,41 +551,37 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Widget _buildTabs() {
+    final tabs = ['Todas', 'Favoritos', 'Top', 'Recientes', 'Artistas', 'Álbumes'];
     return Container(
       height: 44,
       margin: EdgeInsets.fromLTRB(24, 16, 24, 0),
-      child: Row(
-        children: [
-          _buildTab(0, 'Todas'),
-          _buildTab(1, 'Favoritos'),
-          _buildTab(2, 'Top'),
-          _buildTab(3, 'Recientes'),
-        ],
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: tabs.length,
+        itemBuilder: (context, i) => _buildTab(i, tabs[i]),
       ),
     );
   }
 
   Widget _buildTab(int index, String label) {
     final isActive = _currentTab == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _currentTab = index),
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 250),
-          margin: EdgeInsets.symmetric(horizontal: 3),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.accent.withValues(alpha: 0.15) : AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: isActive ? [] : Neumorphic.inset,
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                color: isActive ? AppColors.accent : AppColors.textDisabled,
-              ),
+    return GestureDetector(
+      onTap: () => setState(() => _currentTab = index),
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 4),
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.accent.withValues(alpha: 0.15) : AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: isActive ? [] : Neumorphic.inset,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              color: isActive ? AppColors.accent : AppColors.textDisabled,
             ),
           ),
         ),
@@ -538,6 +630,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
       listenable: Listenable.merge([widget.libraryService, widget.audioService]),
       builder: (context, _) {
         final songs = _currentList;
+        if (_currentTab == 4) {
+          return _buildGroupView(_groupedByArtist, Icons.person);
+        }
+        if (_currentTab == 5) {
+          return _buildGroupView(_groupedByAlbum, Icons.album);
+        }
         if (songs.isEmpty) {
           return Center(
             child: Column(
