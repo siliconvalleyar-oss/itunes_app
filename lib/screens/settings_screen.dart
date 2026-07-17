@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../components/neu_card.dart';
 import '../components/neu_switch.dart';
 
 class SettingsScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
+  static const String appVersion = 'v1.1.0';
 
   SettingsScreen({super.key, required this.themeProvider});
 
@@ -45,7 +47,7 @@ class SettingsScreen extends StatelessWidget {
                         ]),
                         SizedBox(height: 20),
                         _buildSection('Acerca de', [
-                          _buildInfoTile('Versión', Icons.info_outline, '1.0.0'),
+                          _buildInfoTile('Versión', Icons.info_outline, appVersion),
                           _buildInfoTile('Desarrollador', Icons.code_outlined, 'MiMoCode'),
                         ]),
                         SizedBox(height: 100),
