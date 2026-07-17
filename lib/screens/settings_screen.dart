@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
@@ -6,7 +7,7 @@ import '../components/neu_switch.dart';
 
 class SettingsScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
-  static const String appVersion = 'v1.1.5';
+  static const String appVersion = 'v1.1.6';
 
   SettingsScreen({super.key, required this.themeProvider});
 
@@ -15,49 +16,49 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: ListenableBuilder(
-                  listenable: themeProvider,
-                  builder: (context, _) {
-                    return Column(
-                      children: [
-                        SizedBox(height: 24),
-                        _buildSection('Apariencia', [
-                          _buildSwitchTile(
-                            'Modo oscuro',
-                            Icons.dark_mode_outlined,
-                            themeProvider.isDark,
-                            (v) => themeProvider.setDark(v),
-                          ),
-                        ]),
-                        SizedBox(height: 20),
-                        _buildSection('General', [
-                          _buildInfoTile('Notificaciones', Icons.notifications_outlined, 'Activadas'),
-                          _buildInfoTile('Idioma', Icons.language, 'Español'),
-                        ]),
-                        SizedBox(height: 20),
-                        _buildSection('Audio', [
-                          _buildInfoTile('Calidad', Icons.high_quality_outlined, '320kbps'),
-                          _buildInfoTile('Formato', Icons.audio_file_outlined, 'MP3'),
-                        ]),
-                        SizedBox(height: 20),
-                        _buildSection('Acerca de', [
-                          _buildInfoTile('Versión', Icons.info_outline, appVersion),
-                          _buildInfoTile('Desarrollador', Icons.code_outlined, 'MiMoCode'),
-                        ]),
-                        SizedBox(height: 100),
-                      ],
-                    );
-                  },
-                ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16),
+              _buildHeader(),
+              SizedBox(height: 24),
+              ListenableBuilder(
+                listenable: themeProvider,
+                builder: (context, _) {
+                  return Column(
+                    children: [
+                      _buildSection('Apariencia', [
+                        _buildSwitchTile(
+                          'Modo oscuro',
+                          Icons.dark_mode_outlined,
+                          themeProvider.isDark,
+                          (v) => themeProvider.setDark(v),
+                        ),
+                      ]),
+                      SizedBox(height: 20),
+                      _buildSection('General', [
+                        _buildInfoTile('Notificaciones', Icons.notifications_outlined, 'Activadas'),
+                        _buildInfoTile('Idioma', Icons.language, 'Español'),
+                      ]),
+                      SizedBox(height: 20),
+                      _buildSection('Audio', [
+                        _buildInfoTile('Calidad', Icons.high_quality_outlined, '320kbps'),
+                        _buildInfoTile('Formato', Icons.audio_file_outlined, 'MP3'),
+                      ]),
+                      SizedBox(height: 20),
+                      _buildSection('Acerca de', [
+                        _buildInfoTile('Versión', Icons.info_outline, appVersion),
+                        _buildInfoTile('Desarrollador', Icons.code_outlined, 'MiMoCode'),
+                      ]),
+                      SizedBox(height: 40),
+                    ],
+                  );
+                },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -65,14 +66,10 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildHeader() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+      padding: EdgeInsets.only(left: 8),
       child: Text(
         'Configuración',
-        style: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
+        style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
       ),
     );
   }
@@ -81,13 +78,11 @@ class SettingsScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-            letterSpacing: 0.5,
+        Padding(
+          padding: EdgeInsets.only(left: 8),
+          child: Text(
+            title,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary, letterSpacing: 0.5),
           ),
         ),
         SizedBox(height: 12),
@@ -102,20 +97,16 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildSwitchTile(String title, IconData icon, bool value, ValueChanged<bool> onChanged) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
         children: [
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: Neumorphic.subtle,
-            ),
+            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(10), boxShadow: Neumorphic.subtle),
             child: Icon(icon, color: AppColors.textSecondary, size: 18),
           ),
-          SizedBox(width: 14),
+          SizedBox(width: 12),
           Expanded(
             child: Text(title, style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
           ),
@@ -127,20 +118,16 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildInfoTile(String title, IconData icon, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
         children: [
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: Neumorphic.subtle,
-            ),
+            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(10), boxShadow: Neumorphic.subtle),
             child: Icon(icon, color: AppColors.textSecondary, size: 18),
           ),
-          SizedBox(width: 14),
+          SizedBox(width: 12),
           Expanded(
             child: Text(title, style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
           ),
