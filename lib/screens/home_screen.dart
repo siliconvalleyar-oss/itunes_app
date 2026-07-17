@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../theme/app_theme.dart';
+import '../models/song.dart';
 import '../services/audio_service.dart';
 import '../services/library_service.dart';
 import '../services/music_scanner.dart';
@@ -10,7 +11,9 @@ import '../services/playlist_service.dart';
 import '../components/neu_card.dart';
 import '../components/neu_button.dart';
 import '../components/neu_slider.dart';
+import '../widgets/song_tile.dart';
 import 'player_screen.dart';
+import 'group_songs_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final AudioService audioService;
@@ -32,11 +35,55 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final MusicScanner _scanner = MusicScanner();
   bool _permissionGranted = false;
   bool _permissionLoading = true;
+  int _currentTab = 0;
+  bool _selectionMode = false;
+  final Set<String> _selectedIds = {};
+
+  List<Song> get _currentList {
+    switch (_currentTab) {
+      case 0:
+        return widget.libraryService.allSongs;
+      case 1:
+        return widget.libraryService.favorites;
+      case 2:
+        return widget.libraryService.mostPlayed;
+      case 3:
+        return widget.libraryService.recentlyPlayed;
+      default:
+        return widget.libraryService.allSongs;
+    }
+  }
+
+  Map<String, List<Song>> get _groupedByArtist {
+    final map = <String, List<Song>>{};
+    for (final s in widget.libraryService.allSongs) {
+      final key = s.artist.isNotEmpty ? s.artist : 'Desconocido';
+      map.putIfAbsent(key, () => []).add(s);
+    }
+    return map;
+  }
+
+  Map<String, List<Song>> get _groupedByAlbum {
+    final map = <String, List<Song>>{};
+    for (final s in widget.libraryService.allSongs) {
+      final key = s.album.isNotEmpty ? s.album : 'Sin álbum';
+      map.putIfAbsent(key, () => []).add(s);
+    }
+    return map;
+  }
+
+  void _exitSelection() {
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _currentTab = widget.libraryService.lastTab;
     _checkPermissionAndScan();
     widget.libraryService.addListener(_onLibraryChanged);
   }
@@ -101,30 +148,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 : Column(
                     children: [
                       _buildHeader(),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
-                          child: Column(
-                            children: [
-                              SizedBox(height: 24),
-                              _buildNowPlaying(),
-                              SizedBox(height: 32),
-                              _buildControls(),
-                              SizedBox(height: 24),
-                              _buildProgressBar(),
-                              SizedBox(height: 24),
-                              _buildInfoChips(),
-                              SizedBox(height: 24),
-                              _buildVisualizer(),
-                              SizedBox(height: 100),
-                            ],
-                          ),
-                        ),
-                      ),
+                      if (!_selectionMode) _buildTabs(),
+                      SizedBox(height: 8),
+                      if (!_selectionMode) _buildStats(),
+                      SizedBox(height: 16),
+                      Expanded(child: _buildSongList()),
                     ],
                   ),
       ),
-
     );
   }
 
@@ -196,292 +227,240 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          NeuButton(
-            onPressed: () {},
-            size: 44,
-            child: Icon(Icons.menu, color: AppColors.textSecondary, size: 20),
-          ),
           Text(
-            'Music Studio',
+            'Inicio',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 28,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          NeuButton(
-            onPressed: () {},
-            size: 44,
-            child: Icon(Icons.search, color: AppColors.textSecondary, size: 20),
-          ),
+          Spacer(),
         ],
       ),
     );
   }
 
-  Widget _buildNowPlaying() {
-    return ListenableBuilder(
-      listenable: widget.audioService,
-      builder: (context, _) {
-        final song = widget.audioService.currentSong;
-        return NeuCard(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.accent.withValues(alpha: 0.15),
-                      AppColors.accentAlt.withValues(alpha: 0.15),
-                    ],
-                  ),
-                  boxShadow: Neumorphic.inset,
-                ),
-                child: song?.localCoverPath != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Container(
-                          color: AppColors.surface,
-                          child: Center(
-                            child: Image.file(File(song!.localCoverPath!), fit: BoxFit.contain),
-                          ),
-                        ),
-                      )
-                    : song?.coverArt != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Container(
-                          color: AppColors.surface,
-                          child: Center(
-                            child: Image.memory(song!.coverArt!, fit: BoxFit.contain),
-                          ),
-                        ),
-                      )
-                    : Icon(
-                        Icons.music_note,
-                        color: AppColors.textDisabled,
-                        size: 72,
-                      ),
-              ),
-              SizedBox(height: 24),
-              Text(
-                song?.title ?? 'Selecciona una canción',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: 6),
-              Text(
-                song?.artist ?? 'Artista',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                song?.album ?? 'Álbum',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textDisabled,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildControls() {
-    return ListenableBuilder(
-      listenable: widget.audioService,
-      builder: (context, _) {
-        return FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              NeuButton(
-                onPressed: widget.audioService.toggleShuffle,
-                size: 48,
-                isActive: widget.audioService.isShuffled,
-                child: Icon(
-                  Icons.shuffle,
-                  color: widget.audioService.isShuffled
-                      ? AppColors.accent
-                      : AppColors.textSecondary,
-                  size: 20,
-                ),
-              ),
-              SizedBox(width: 12),
-              NeuButton(
-                onPressed: widget.audioService.previous,
-                size: 52,
-                child: Icon(Icons.skip_previous, color: AppColors.textPrimary, size: 26),
-              ),
-              SizedBox(width: 12),
-              NeuButton(
-                onPressed: () {
-                  if (widget.audioService.isPlaying) {
-                    widget.audioService.pause();
-                  } else {
-                    widget.audioService.resume();
-                  }
-                },
-                size: 64,
-                isInset: widget.audioService.isPlaying,
-                child: Icon(
-                  widget.audioService.isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: AppColors.accent,
-                  size: 32,
-                ),
-              ),
-              SizedBox(width: 12),
-              NeuButton(
-                onPressed: widget.audioService.next,
-                size: 52,
-                child: Icon(Icons.skip_next, color: AppColors.textPrimary, size: 26),
-              ),
-              SizedBox(width: 12),
-              NeuButton(
-                onPressed: widget.audioService.cycleLoopMode,
-                size: 48,
-                isActive: widget.audioService.loopMode != LoopMode.off,
-                child: Icon(
-                  widget.audioService.loopMode == LoopMode.one ? Icons.repeat_one : Icons.repeat,
-                  color: widget.audioService.loopMode != LoopMode.off
-                      ? AppColors.accent
-                      : AppColors.textSecondary,
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildProgressBar() {
-    return ListenableBuilder(
-      listenable: widget.audioService,
-      builder: (context, _) {
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 36,
-                child: Text(
-                  _fmt(widget.audioService.position),
-                  style: TextStyle(fontSize: 11, color: AppColors.textDisabled),
-                ),
-              ),
-              Expanded(
-                child: NeuSlider(
-                  value: widget.audioService.duration.inMilliseconds > 0
-                      ? widget.audioService.position.inMilliseconds /
-                          widget.audioService.duration.inMilliseconds
-                      : 0,
-                  onChanged: (v) {
-                    final pos = Duration(
-                      milliseconds: (v * widget.audioService.duration.inMilliseconds).round(),
-                    );
-                    widget.audioService.seek(pos);
-                  },
-                ),
-              ),
-              SizedBox(
-                width: 36,
-                child: Text(
-                  _fmt(widget.audioService.duration),
-                  textAlign: TextAlign.end,
-                  style: TextStyle(fontSize: 11, color: AppColors.textDisabled),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildInfoChips() {
-    return ListenableBuilder(
-      listenable: widget.audioService,
-      builder: (context, _) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildChip('320', 'kbps'),
-            SizedBox(width: 12),
-            _buildChip('MP3', 'fmt'),
-            SizedBox(width: 12),
-            _buildChip('44.1', 'kHz'),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildChip(String value, String label) {
+  Widget _buildTabs() {
+    final tabs = ['Todas', 'Favoritos', 'Top', 'Recientes', 'Artistas', 'Álbumes'];
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: Neumorphic.subtle,
-      ),
-      child: Column(
-        children: [
-          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-          Text(label, style: TextStyle(fontSize: 10, color: AppColors.textDisabled)),
-        ],
+      height: 44,
+      margin: EdgeInsets.fromLTRB(24, 16, 24, 0),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: tabs.length,
+        itemBuilder: (context, i) => _buildTab(i, tabs[i]),
       ),
     );
   }
 
-  Widget _buildVisualizer() {
-    return NeuCard(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(24, (i) {
-            final h = 10 + (i * 3 % 30).toDouble();
-            return AnimatedContainer(
-              duration: Duration(milliseconds: 300 + (i * 50)),
-              width: 4,
-              height: h,
-              decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.3 + (i % 3) * 0.15),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            );
-          }),
+  Widget _buildTab(int index, String label) {
+    final isActive = _currentTab == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _currentTab = index);
+        widget.libraryService.setLastTab(index);
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 4),
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.accent.withValues(alpha: 0.15) : AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: isActive ? [] : Neumorphic.inset,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              color: isActive ? AppColors.accent : AppColors.textDisabled,
+            ),
+          ),
         ),
       ),
     );
   }
 
-  String _fmt(Duration d) {
-    final m = d.inMinutes;
-    final s = d.inSeconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  Widget _buildStats() {
+    return ListenableBuilder(
+      listenable: widget.libraryService,
+      builder: (context, _) {
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              _buildStat('Canciones', '${widget.libraryService.allSongs.length}'),
+              SizedBox(width: 12),
+              _buildStat('Favoritos', '${widget.libraryService.favorites.length}'),
+              SizedBox(width: 12),
+              _buildStat('Escuchadas', '${widget.libraryService.mostPlayed.length}'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStat(String label, String value) {
+    return Expanded(
+      child: NeuCard(
+        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        borderRadius: 16,
+        child: Column(
+          children: [
+            Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            SizedBox(height: 2),
+            Text(label, style: TextStyle(fontSize: 11, color: AppColors.textDisabled)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGroupView(Map<String, List<Song>> groups, IconData fallbackIcon) {
+    final sortedKeys = groups.keys.toList()..sort();
+    return ListView.builder(
+      padding: EdgeInsets.symmetric(horizontal: 24),
+      itemCount: sortedKeys.length,
+      itemBuilder: (context, i) {
+        final key = sortedKeys[i];
+        final songs = groups[key]!;
+        return Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GroupSongsScreen(
+                    groupName: key,
+                    songs: songs,
+                    audioService: widget.audioService,
+                    libraryService: widget.libraryService,
+                    playlistService: widget.playlistService,
+                  ),
+                ),
+              );
+            },
+            child: NeuCard(
+              padding: EdgeInsets.all(12),
+              borderRadius: 16,
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: Neumorphic.inset,
+                    ),
+                    child: Icon(
+                      fallbackIcon,
+                      color: AppColors.accent,
+                      size: 24,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          key,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          '${songs.length} ${songs.length == 1 ? 'canción' : 'canciones'}',
+                          style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: AppColors.textDisabled, size: 20),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSongList() {
+    return ListenableBuilder(
+      listenable: Listenable.merge([widget.libraryService, widget.audioService]),
+      builder: (context, _) {
+        final songs = _currentList;
+        if (_currentTab == 4) {
+          return _buildGroupView(_groupedByArtist, Icons.person);
+        }
+        if (_currentTab == 5) {
+          return _buildGroupView(_groupedByAlbum, Icons.album);
+        }
+        if (songs.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    shape: BoxShape.circle,
+                    boxShadow: Neumorphic.inset,
+                  ),
+                  child: Icon(Icons.music_off, color: AppColors.textDisabled, size: 32),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  _currentTab == 1 ? 'No hay favoritos' : 'Sin canciones',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
+                ),
+              ],
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          itemCount: songs.length,
+          itemBuilder: (context, index) {
+            final song = songs[index];
+            return SongTile(
+              song: song,
+              audioService: widget.audioService,
+              isFavorite: widget.libraryService.isFavorite(song.id),
+              onFavoriteToggle: () => widget.libraryService.toggleFavorite(song),
+              onHide: () => widget.libraryService.toggleIgnored(song),
+              onTap: () {
+                widget.libraryService.recordPlay(song);
+                widget.audioService.play(song);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PlayerScreen(
+                      audioService: widget.audioService,
+                      libraryService: widget.libraryService,
+                      playlistService: widget.playlistService,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 }

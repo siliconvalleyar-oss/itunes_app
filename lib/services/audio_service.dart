@@ -91,7 +91,10 @@ class AudioService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> play(Song song) async {
+  Future<void> play(Song song, {List<Song>? playlist}) async {
+    if (playlist != null) {
+      _playlist = List.from(playlist);
+    }
     final index = _playlist.indexWhere((s) => s.id == song.id);
     if (index >= 0) {
       _currentIndex = index;

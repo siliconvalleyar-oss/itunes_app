@@ -512,6 +512,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: ListenableBuilder(
           listenable: widget.audioService,
@@ -910,7 +911,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
             SizedBox(height: 16),
             SizedBox(
-              height: 140,
+              height: 100,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.end,

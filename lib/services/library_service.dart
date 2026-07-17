@@ -13,6 +13,16 @@ class LibraryService extends ChangeNotifier {
   Set<String> _ignoredIds = {};
   Map<String, Map<String, dynamic>> _metadataOverrides = {};
   Map<String, String> _coverPaths = {};
+  String? _lastSongId;
+  int _lastTab = 0;
+
+  String? get lastSongId => _lastSongId;
+  int get lastTab => _lastTab;
+
+  void setLastTab(int tab) {
+    _lastTab = tab;
+    _saveLastState();
+  }
 
   List<Song> get allSongs => _allSongs.where((s) => !_ignoredIds.contains(s.id)).toList();
   List<Song> get allSongsUnfiltered => _allSongs;
@@ -173,8 +183,37 @@ class LibraryService extends ChangeNotifier {
       _recentlyPlayed = _recentlyPlayed.sublist(0, 50);
     }
 
+    _lastSongId = song.id;
     _savePlayData();
+    _saveLastState();
     notifyListeners();
+  }
+
+  Song? get lastSong => _lastSongId != null
+      ? _allSongs.where((s) => s.id == _lastSongId).firstOrNull
+      : null;
+
+  Future<void> _saveLastState() async {
+    try {
+      final dir = await _getDataDir();
+      final file = File('${dir.path}/last_state.json');
+      await file.writeAsString(jsonEncode({
+        'lastSongId': _lastSongId,
+        'lastTab': _lastTab,
+      }));
+    } catch (_) {}
+  }
+
+  Future<void> _loadLastState() async {
+    try {
+      final dir = await _getDataDir();
+      final file = File('${dir.path}/last_state.json');
+      if (await file.exists()) {
+        final data = jsonDecode(await file.readAsString()) as Map;
+        _lastSongId = data['lastSongId'] as String?;
+        _lastTab = data['lastTab'] as int? ?? 0;
+      }
+    } catch (_) {}
   }
 
   Future<void> _saveFavorites() async {
@@ -247,6 +286,7 @@ class LibraryService extends ChangeNotifier {
 
       await _loadMetadataOverrides();
       await _loadCoverPaths();
+      await _loadLastState();
     } catch (_) {}
     notifyListeners();
   }

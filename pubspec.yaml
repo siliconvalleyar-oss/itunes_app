@@ -1,7 +1,7 @@
 name: itunes_app
 description: "Reproductor de música minimalista con diseño glassmorphism"
 publish_to: 'none'
-version: 1.1.2+1
+version: 1.1.3+1
 
 environment:
   sdk: ^3.12.1
@@ -17,6 +17,7 @@ dependencies:
   share_plus: ^10.0.0
   image_picker: ^1.1.0
   crypto: ^3.0.0
+  shared_preferences: ^2.2.0
 
 dev_dependencies:
   flutter_test:
