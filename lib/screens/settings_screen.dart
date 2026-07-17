@@ -7,7 +7,7 @@ import '../components/neu_switch.dart';
 
 class SettingsScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
-  static const String appVersion = 'v1.1.6';
+  static const String appVersion = 'v1.1.7';
 
   SettingsScreen({super.key, required this.themeProvider});
 

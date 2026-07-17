@@ -48,14 +48,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       case 2:
         return widget.libraryService.allSongs;
       case 3:
-        return widget.libraryService.favorites;
+        return widget.libraryService.allSongs;
       case 4:
-        return widget.libraryService.mostPlayed;
+        return widget.libraryService.favorites;
       case 5:
+        return widget.libraryService.mostPlayed;
+      case 6:
         return widget.libraryService.recentlyPlayed;
       default:
         return widget.libraryService.allSongs;
     }
+  }
+
+  Map<String, List<Song>> get _groupedByGenre {
+    final map = <String, List<Song>>{};
+    for (final s in widget.libraryService.allSongs) {
+      final key = (s.genre != null && s.genre!.isNotEmpty) ? s.genre! : 'Sin género';
+      map.putIfAbsent(key, () => []).add(s);
+    }
+    return map;
   }
 
   Map<String, List<Song>> get _groupedByArtist {
@@ -90,6 +101,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _currentTab = widget.libraryService.lastTab;
     _checkPermissionAndScan();
     widget.libraryService.addListener(_onLibraryChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // restaura el grupo después de que el árbol esté listo
+    _restoreLastGroup();
+  }
+
+  void _restoreLastGroup() {
+    final groupName = widget.libraryService.lastGroupName;
+    final groupType = widget.libraryService.lastGroupType;
+    final lastSong = widget.libraryService.lastSong;
+    if (groupName != null && groupType > 0) {
+      final groups = groupType == 1 ? _groupedByArtist : _groupedByAlbum;
+      final songs = groups[groupName];
+      if (songs != null) {
+        // navega al grupo después del build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => GroupSongsScreen(
+                groupName: groupName,
+                songs: songs,
+                audioService: widget.audioService,
+                libraryService: widget.libraryService,
+                playlistService: widget.playlistService,
+              ),
+            ),
+          );
+        });
+      }
+    }
   }
 
   void _onLibraryChanged() {
@@ -247,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildTabs() {
-    final tabs = ['Todas', 'Artistas', 'Álbumes', 'Favoritos', 'Top', 'Recientes'];
+    final tabs = ['Todas', 'Artistas', 'Álbumes', 'Género', 'Favoritos', 'Top', 'Recientes'];
     return Container(
       height: 44,
       margin: EdgeInsets.fromLTRB(24, 16, 24, 0),
@@ -411,6 +457,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         }
         if (_currentTab == 2) {
           return _buildGroupView(_groupedByAlbum, Icons.album);
+        }
+        if (_currentTab == 3) {
+          return _buildGroupView(_groupedByGenre, Icons.category_outlined);
         }
         if (songs.isEmpty) {
           return Center(

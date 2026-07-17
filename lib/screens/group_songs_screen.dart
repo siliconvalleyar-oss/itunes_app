@@ -32,6 +32,17 @@ class _GroupSongsScreenState extends State<GroupSongsScreen> {
   bool _selectionMode = false;
   final Set<String> _selectedIds = {};
 
+  @override
+  void initState() {
+    super.initState();
+    // determina si es artista o álbum según el contexto
+    // asumimos artista si groupName tiene menos de 20 chars o artista es reconocible
+    // como no tenemos el tipo exacto, usamos un heuristic simple:
+    // si el nombre aparece como artista en las canciones, es artista
+    final isArtist = widget.songs.any((s) => s.artist == widget.groupName);
+    widget.libraryService.setLastGroup(widget.groupName, isArtist ? 1 : 2);
+  }
+
   void _exitSelection() {
     setState(() {
       _selectionMode = false;

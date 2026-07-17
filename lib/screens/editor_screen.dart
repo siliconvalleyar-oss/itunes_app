@@ -49,18 +49,17 @@ class EditorScreen extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
-          Text(
-            'Propiedades',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-          ),
-          Spacer(),
-          if (song != null)
-            Text(
-              song.title,
-              style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          Text('Propiedades', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          if (song != null) ...[
+            SizedBox(width: 8),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(song.title, style: TextStyle(fontSize: 12, color: AppColors.textDisabled), maxLines: 1),
+              ),
             ),
+          ],
         ],
       ),
     );

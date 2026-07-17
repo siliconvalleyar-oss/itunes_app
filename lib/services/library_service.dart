@@ -15,12 +15,22 @@ class LibraryService extends ChangeNotifier {
   Map<String, String> _coverPaths = {};
   String? _lastSongId;
   int _lastTab = 0;
+  String? _lastGroupName;
+  int _lastGroupType = 0; // 0=ninguno, 1=artista, 2=álbum
 
   String? get lastSongId => _lastSongId;
   int get lastTab => _lastTab;
+  String? get lastGroupName => _lastGroupName;
+  int get lastGroupType => _lastGroupType;
 
   void setLastTab(int tab) {
     _lastTab = tab;
+    _saveLastState();
+  }
+
+  void setLastGroup(String name, int type) {
+    _lastGroupName = name;
+    _lastGroupType = type;
     _saveLastState();
   }
 
@@ -200,6 +210,8 @@ class LibraryService extends ChangeNotifier {
       await file.writeAsString(jsonEncode({
         'lastSongId': _lastSongId,
         'lastTab': _lastTab,
+        'lastGroupName': _lastGroupName,
+        'lastGroupType': _lastGroupType,
       }));
     } catch (_) {}
   }
@@ -212,6 +224,8 @@ class LibraryService extends ChangeNotifier {
         final data = jsonDecode(await file.readAsString()) as Map;
         _lastSongId = data['lastSongId'] as String?;
         _lastTab = data['lastTab'] as int? ?? 0;
+        _lastGroupName = data['lastGroupName'] as String?;
+        _lastGroupType = data['lastGroupType'] as int? ?? 0;
       }
     } catch (_) {}
   }
