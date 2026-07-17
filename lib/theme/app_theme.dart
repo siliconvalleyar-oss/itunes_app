@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider extends ChangeNotifier {
   bool _isDark = false;
@@ -6,12 +7,25 @@ class ThemeProvider extends ChangeNotifier {
 
   void toggleTheme() {
     _isDark = !_isDark;
+    _save();
     notifyListeners();
   }
 
   void setDark(bool value) {
     _isDark = value;
+    _save();
     notifyListeners();
+  }
+
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isDark = prefs.getBool('isDark') ?? false;
+    notifyListeners();
+  }
+
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDark', _isDark);
   }
 }
 

@@ -44,10 +44,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       case 0:
         return widget.libraryService.allSongs;
       case 1:
-        return widget.libraryService.favorites;
+        return widget.libraryService.allSongs;
       case 2:
-        return widget.libraryService.mostPlayed;
+        return widget.libraryService.allSongs;
       case 3:
+        return widget.libraryService.favorites;
+      case 4:
+        return widget.libraryService.mostPlayed;
+      case 5:
         return widget.libraryService.recentlyPlayed;
       default:
         return widget.libraryService.allSongs;
@@ -243,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildTabs() {
-    final tabs = ['Todas', 'Favoritos', 'Top', 'Recientes', 'Artistas', 'Álbumes'];
+    final tabs = ['Todas', 'Artistas', 'Álbumes', 'Favoritos', 'Top', 'Recientes'];
     return Container(
       height: 44,
       margin: EdgeInsets.fromLTRB(24, 16, 24, 0),
@@ -402,10 +406,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       listenable: Listenable.merge([widget.libraryService, widget.audioService]),
       builder: (context, _) {
         final songs = _currentList;
-        if (_currentTab == 4) {
+        if (_currentTab == 1) {
           return _buildGroupView(_groupedByArtist, Icons.person);
         }
-        if (_currentTab == 5) {
+        if (_currentTab == 2) {
           return _buildGroupView(_groupedByAlbum, Icons.album);
         }
         if (songs.isEmpty) {

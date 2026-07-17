@@ -28,7 +28,7 @@ class NeuBottomNav extends StatelessWidget {
             _buildItem(0, Icons.home_outlined, 'Inicio'),
             _buildItem(1, Icons.library_music_outlined, 'Biblioteca'),
             _buildItem(2, Icons.queue_music_outlined, 'Listas'),
-            _buildItem(3, Icons.edit_outlined, 'Editor'),
+            _buildItem(3, Icons.info_outline, 'Propiedades'),
             _buildItem(4, Icons.settings_outlined, 'Config'),
           ],
         ),

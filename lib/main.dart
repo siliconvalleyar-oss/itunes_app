@@ -80,6 +80,7 @@ class _AppShellState extends State<AppShell> {
     _libraryService.loadSavedData();
     _playlistService.loadPlaylists();
     _themeProvider.addListener(_onThemeChange);
+    _themeProvider.load();
   }
 
   void _onThemeChange() {

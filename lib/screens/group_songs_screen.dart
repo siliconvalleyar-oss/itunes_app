@@ -244,6 +244,14 @@ class _GroupSongsScreenState extends State<GroupSongsScreen> {
                     onHide: () => widget.libraryService.toggleIgnored(song),
                     selectionMode: _selectionMode,
                     isSelected: _selectedIds.contains(song.id),
+                    onLongPress: _selectionMode
+                        ? null
+                        : () {
+                            setState(() {
+                              _selectionMode = true;
+                              _selectedIds.add(song.id);
+                            });
+                          },
                     onSelect: (val) {
                       setState(() {
                         if (val) {

@@ -1,188 +1,91 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/song.dart';
 import '../services/audio_service.dart';
-import '../services/metadata_service.dart';
 import '../components/neu_card.dart';
-import '../components/neu_button.dart';
-import '../components/neu_input.dart';
 
-class EditorScreen extends StatefulWidget {
+class EditorScreen extends StatelessWidget {
   final AudioService audioService;
 
   EditorScreen({super.key, required this.audioService});
-
-  @override
-  State<EditorScreen> createState() => _EditorScreenState();
-}
-
-class _EditorScreenState extends State<EditorScreen> {
-  final MetadataService _metaService = MetadataService();
-  final _titleCtrl = TextEditingController();
-  final _artistCtrl = TextEditingController();
-  final _albumCtrl = TextEditingController();
-  final _yearCtrl = TextEditingController();
-  final _genreCtrl = TextEditingController();
-  final _trackCtrl = TextEditingController();
-  final _discCtrl = TextEditingController();
-  final _commentCtrl = TextEditingController();
-  final _lyricsCtrl = TextEditingController();
-  Song? _song;
-  bool _hasChanges = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSong();
-  }
-
-  void _loadSong() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final song = ModalRoute.of(context)?.settings.arguments as Song?;
-      if (song != null) {
-        setState(() => _song = song);
-        _titleCtrl.text = song.title;
-        _artistCtrl.text = song.artist;
-        _albumCtrl.text = song.album;
-      }
-    });
-  }
-
-  void _markChanged() {
-    if (!_hasChanges) setState(() => _hasChanges = true);
-  }
-
-  Future<void> _save() async {
-    if (_song == null) return;
-    try {
-      await _metaService.saveMetadata(
-        _song!,
-        title: _titleCtrl.text,
-        artist: _artistCtrl.text,
-        album: _albumCtrl.text,
-      );
-      if (mounted) {
-        setState(() => _hasChanges = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Guardado'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-      }
-    } catch (_) {}
-  }
-
-  @override
-  void dispose() {
-    _titleCtrl.dispose();
-    _artistCtrl.dispose();
-    _albumCtrl.dispose();
-    _yearCtrl.dispose();
-    _genreCtrl.dispose();
-    _trackCtrl.dispose();
-    _discCtrl.dispose();
-    _commentCtrl.dispose();
-    _lyricsCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    SizedBox(height: 24),
-                    _buildCoverArt(),
-                    SizedBox(height: 24),
-                    _buildForm(),
-                    SizedBox(height: 24),
-                    _buildActions(),
-                    SizedBox(height: 40),
-                  ],
+        child: ListenableBuilder(
+          listenable: audioService,
+          builder: (context, _) {
+            final song = audioService.currentSong;
+            return Column(
+              children: [
+                _buildHeader(song),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 24),
+                        _buildCoverArt(song),
+                        SizedBox(height: 24),
+                        _buildProperties(song),
+                        SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(Song? song) {
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
-          NeuButton(
-            onPressed: () => Navigator.pop(context),
-            size: 40,
-            child: Icon(Icons.arrow_back_ios_new, color: AppColors.textSecondary, size: 16),
-          ),
-          SizedBox(width: 16),
           Text(
-            'Editor',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
+            'Propiedades',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
           ),
           Spacer(),
-          if (_hasChanges)
-            NeuButton(
-              onPressed: _save,
-              size: 40,
-              isActive: true,
-              child: Icon(Icons.check, color: AppColors.accent, size: 20),
+          if (song != null)
+            Text(
+              song.title,
+              style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
         ],
       ),
     );
   }
 
-  Widget _buildCoverArt() {
+  Widget _buildCoverArt(Song? song) {
     return Center(
       child: NeuCard(
         padding: EdgeInsets.all(24),
         child: Column(
           children: [
             Container(
-              width: 180,
-              height: 180,
+              width: 160,
+              height: 160,
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: Neumorphic.inset,
               ),
-              child: Icon(Icons.music_note, color: AppColors.textDisabled, size: 64),
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                NeuButton(
-                  onPressed: () {},
-                  size: 36,
-                  child: Icon(Icons.photo_camera, color: AppColors.textSecondary, size: 16),
-                ),
-                SizedBox(width: 12),
-                NeuButton(
-                  onPressed: () {},
-                  size: 36,
-                  child: Icon(Icons.delete_outline, color: AppColors.error, size: 16),
-                ),
-              ],
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: song?.localCoverPath != null
+                    ? Image.file(File(song!.localCoverPath!), fit: BoxFit.cover)
+                    : Icon(Icons.music_note, color: AppColors.textDisabled, size: 56),
+              ),
             ),
           ],
         ),
@@ -190,61 +93,63 @@ class _EditorScreenState extends State<EditorScreen> {
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildProperties(Song? song) {
+    if (song == null) {
+      return Column(
+        children: [
+          SizedBox(height: 60),
+          Icon(Icons.info_outline, color: AppColors.textDisabled, size: 48),
+          SizedBox(height: 16),
+          Text('Reproduce una canción para ver sus propiedades',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+        ],
+      );
+    }
+
     return Column(
       children: [
-        NeuInput(controller: _titleCtrl, label: 'Título', icon: Icons.title, onChanged: (_) => _markChanged()),
-        NeuInput(controller: _artistCtrl, label: 'Artista', icon: Icons.person_outline, onChanged: (_) => _markChanged()),
-        NeuInput(controller: _albumCtrl, label: 'Álbum', icon: Icons.album_outlined, onChanged: (_) => _markChanged()),
-        Row(
-          children: [
-            Expanded(child: NeuInput(controller: _yearCtrl, label: 'Año', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
-            SizedBox(width: 12),
-            Expanded(child: NeuInput(controller: _genreCtrl, label: 'Género', icon: Icons.category_outlined, onChanged: (_) => _markChanged())),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(child: NeuInput(controller: _trackCtrl, label: 'Pista', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
-            SizedBox(width: 12),
-            Expanded(child: NeuInput(controller: _discCtrl, label: 'Disco', keyboardType: TextInputType.number, onChanged: (_) => _markChanged())),
-          ],
-        ),
-        NeuInput(controller: _commentCtrl, label: 'Comentario', icon: Icons.comment_outlined, onChanged: (_) => _markChanged()),
-        NeuInput(controller: _lyricsCtrl, label: 'Letra', maxLines: 4, onChanged: (_) => _markChanged()),
+        _propRow('Título', song.title),
+        _propRow('Artista', song.artist.isNotEmpty ? song.artist : 'Desconocido'),
+        _propRow('Álbum', song.album.isNotEmpty ? song.album : 'Sin álbum'),
+        _propRow('Duración', _formatDuration(song.duration.inSeconds)),
+        _propRow('Ruta', song.filePath),
+        _propRow('ID', song.id),
       ],
     );
   }
 
-  Widget _buildActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: NeuButton(
-            onPressed: () => Navigator.pop(context),
-            size: 52,
-            isCircle: false,
-            child: Text('Cancelar', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+  Widget _propRow(String label, String value) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: Neumorphic.inset,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 72,
+            child: Text(label,
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
           ),
-        ),
-        SizedBox(width: 16),
-        Expanded(
-          child: NeuButton(
-            onPressed: _hasChanges ? _save : null,
-            size: 52,
-            isCircle: false,
-            isActive: _hasChanges,
-            child: Text(
-              'Guardar',
-              style: TextStyle(
-                color: _hasChanges ? AppColors.accent : AppColors.textDisabled,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(value,
+                style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis),
           ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  String _formatDuration(int seconds) {
+    final m = (seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
   }
 }

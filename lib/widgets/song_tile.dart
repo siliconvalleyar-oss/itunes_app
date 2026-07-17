@@ -9,6 +9,7 @@ class SongTile extends StatelessWidget {
   final AudioService audioService;
   final bool isFavorite;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final VoidCallback? onFavoriteToggle;
   final VoidCallback? onHide;
   final bool selectionMode;
@@ -21,6 +22,7 @@ class SongTile extends StatelessWidget {
     required this.audioService,
     this.isFavorite = false,
     this.onTap,
+    this.onLongPress,
     this.onFavoriteToggle,
     this.onHide,
     this.selectionMode = false,
@@ -36,7 +38,9 @@ class SongTile extends StatelessWidget {
         final isPlaying = audioService.currentSong?.id == song.id;
         return GestureDetector(
           onLongPress: () {
-            if (onHide != null && !selectionMode) {
+            if (onLongPress != null) {
+              onLongPress!();
+            } else if (onHide != null && !selectionMode) {
               showDialog(
                 context: context,
                 builder: (ctx) => Dialog(
